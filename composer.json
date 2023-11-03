@@ -1,0 +1,19 @@
+{
+  "name": "heimrichhannot/contao-isotope-stock-bundle",
+  "type": "contao-bundle",
+  "description": "Add stock management to Isotope eCommerce Contao extension.",
+  "license": "GPL-3.0-or-later",
+  "require": {
+    "php": "^8.0",
+    "contao/core-bundle": "^4.13",
+    "symfony/http-kernel": "^5.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "HeimrichHannot\\IsotopeStockBundle\\": "src/"
+    }
+  },
+  "extra": {
+    "contao-manager-plugin": "HeimrichHannot\\IsotopeStockBundle\\ContaoManager\\Plugin"
+  }
+}
