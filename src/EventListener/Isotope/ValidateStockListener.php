@@ -2,13 +2,55 @@
 
 namespace HeimrichHannot\IsotopeStockBundle\EventListener\Isotope;
 
+use Contao\Controller;
+use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
+use HeimrichHannot\UtilsBundle\Util\Utils;
 use Isotope\Interfaces\IsotopeProduct;
+use Isotope\Interfaces\IsotopeProductCollection;
+use Isotope\Isotope;
+use Isotope\Model\OrderStatus;
+use Isotope\Model\ProductCollection;
 use Isotope\Model\ProductCollection\Order;
+use Isotope\Model\ProductCollectionItem;
 use Isotope\Module\Checkout;
 use Isotope\ServiceAnnotation\IsotopeHook;
 
 class ValidateStockListener
 {
+
+    public function __construct(
+        private StockAttribute $stockAttribute,
+        private Utils $utils,
+    ) {}
+
+
+    /**
+     * @IsotopeHook("addProductToCollection")
+     */
+    public function onAddProductToCollection(IsotopeProduct $product, $quantity, IsotopeProductCollection $collection, array $config): int
+    {
+
+        if (!$this->stockAttribute->isActive($product)) {
+            return $quantity;
+        }
+
+        if (!is_int($quantity)) {
+            if (null === $quantity) {
+                return $quantity;
+            }
+
+            if (empty($quantity)) {
+                $quantity = 1;
+            }
+        }
+
+        if (!$this->stockAttribute->validateQuantity($product, $quantity)) {
+            return 0;
+        }
+
+        return $quantity;
+    }
+
     /**
      * @IsotopeHook("preCheckout")
      */
@@ -21,29 +63,107 @@ class ValidateStockListener
         return $this->validateStockCheckout($order);
     }
 
-    public function validateStockCheckout(Order $order, bool $isPostCheckout = false): bool
+    /**
+     * @IsotopeHook("postCheckout")
+     */
+    public function onPostCheckout(Order $order, Checkout $module): void
+    {
+        $this->validateStockCheckout($order, true);
+    }
+
+    /**
+     * @IsotopeHook("updateItemInCollection")
+     */
+    public function onUpdateItemInCollection(ProductCollectionItem $item, array $set, ProductCollection $collection): array
+    {
+        $product = $item->getProduct();
+        if (!$product) {
+            return $set;
+        }
+
+        if (!$this->stockAttribute->isActive($product)) {
+            return $set;
+        }
+
+        if (!$this->stockAttribute->validateQuantity($product, (int)$set['quantity'])) {
+            Controller::reload();
+        }
+
+        return $set;
+    }
+
+    /**
+     * @IsotopeHook("preOrderStatusUpdate")
+     *
+     * @return bool Cancel the order status transition
+     */
+    public function onPreOrderStatusUpdate(Order $order, OrderStatus $newsStatus, array $updates): bool
+    {
+        // atm only for backend
+        if ($this->utils->container()->isFrontend()) {
+            return false;
+        }
+
+        $oldStatus = OrderStatus::findByPk($order->order_status);
+        if (!$oldStatus) {
+            return false;
+        }
+
+        // e.g. new -> cancelled => increase the stock based on the order item's setQuantity-values (no validation required, of course)
+        if (!$oldStatus->stock_increaseStock && $newsStatus->stock_increaseStock) {
+            foreach ($order->getItems() as $item) {
+                $product = $item->getProduct();
+                if (!$product) {
+                    continue;
+                }
+
+                if (!$this->stockAttribute->isActive($product)) {
+                    continue;
+                }
+
+                $product->stock = (int)$product->stock + (int)$item->quantity;
+                $product->save();
+            }
+        }
+        // e.g. cancelled -> new => decrease the stock after validation
+        elseif ($oldStatus->stock_increaseStock && !$newsStatus->stock_increaseStock) {
+            foreach ($order->getItems() as $item) {
+                if (null !== ($product = $item->getProduct())) {
+                    if (!$this->stockAttribute->validateQuantity($product, $item->quantity)) {
+                        // if the validation breaks for only one product collection item -> cancel the order status transition
+                        return true;
+                    }
+                }
+
+                $product->stock = (int)$product->stock - (int)$item->quantity;
+                $product->save();
+            }
+        }
+
+        return false;
+    }
+
+    private function validateStockCheckout(Order $order, bool $isPostCheckout = false): bool
     {
         $items = $order->getItems();
         $orders = [];
 
         foreach ($items as $item) {
-            // @todo Check if product has stock attributes
             $product = $item->getProduct();
             if (!$product) {
                 continue;
             }
 
+            if (!$this->stockAttribute->isActive($product)) {
+                continue;
+            }
 
+            if (!$this->stockAttribute->validateQuantity($product, $item->quantity)) {
+                return false;
+            }
 
-            if ('' != $product->stock && null !== $product->stock) {
-                // override the quantity!
-                if (!$this->validateQuantity($product, $item->quantity)) {
-                    return false;
-                }
-
-                if ($isPostCheckout) {
-                    $orders[] = $item;
-                }
+            if ($isPostCheckout) {
+                $orders[] = $item;
             }
         }
 
@@ -56,17 +176,17 @@ class ValidateStockListener
                     continue;
                 }
 
-                $intQuantity = $this->getTotalStockQuantity($item->quantity, $product);
+                $intQuantity = (int)$items->quantity;
+//                $intQuantity = $this->getTotalStockQuantity($item->quantity, $product);
 
-                $data = [
-                    'stock' => $product->stock - $intQuantity,
-                ];
 
-                if ($data['stock'] <= 0 && !$this->getOverridableStockProperty('skipExemptionFromShippingWhenStockEmpty', $product)) {
-                    $data['shipping_exempt'] = true;
-                }
+                $product->stock = (int)$product->stock - $intQuantity;
 
-                $this->databaseUtil->update('tl_iso_product', $data, 'tl_iso_product.id=?', [$product->id]);
+//                if $product->stock <= 0 && !$this->getOverridableStockProperty('skipExemptionFromShippingWhenStockEmpty', $product)) {
+//                    $product->shipping_exempt = true;
+//                }
+
+                $product->save();
             }
         }
 
@@ -74,43 +194,26 @@ class ValidateStockListener
     }
 
     /**
-     * @param                       $quantity
-     * @param ProductCollectionItem $cartItem
-     * @param int                   $setQuantity
+     * Returns the config value.
      *
-     * @return array|bool
+     * Checks if global value is overwritten by product or product type
+     *
+     * priorities (first is the most important):
+     * product, product type, global shop config.
      */
-    public function validateQuantity(IsotopeProduct $product, $quantity, ProductCollectionItem $cartItem = null, bool $includeError = false, int $setQuantity = null)
+    public function getOverridableStockProperty(string $property, IsotopeProduct $product): mixed
     {
-        // no quantity at all
-        if (null === $quantity) {
-            return true;
-        } elseif (empty($quantity)) {
-            $quantity = 1;
+        // at first check for product and product type
+        if ($product->overrideStockShopConfig) {
+            return $product->{$property};
         }
 
-        $quantityTotal = $this->getTotalCartQuantity($quantity, $product, $cartItem, $setQuantity);
-
-        // stock
-        if (!$this->getOverridableStockProperty('skipStockValidation', $product)) {
-            $validateStock = $this->stockAttribute->validate($product, $quantityTotal, $includeError);
-
-            if (true !== $validateStock[0]) {
-                return $this->validateQuantityErrorResult($validateStock[1], $includeError);
-            }
+        if ($product->getType()?->overrideStockShopConfig) {
+            return $product->getType()->{$property};
         }
 
-        // maxOrderSize
-        $validateMaxOrderSize = $this->maxOrderSizeAttribute->validate($product, $quantityTotal);
+        $objConfig = Isotope::getConfig();
 
-        if (true !== $validateMaxOrderSize[0]) {
-            return $this->validateQuantityErrorResult($validateMaxOrderSize[1], $includeError);
-        }
-
-        if ($includeError) {
-            return [true, null];
-        }
-
-        return true;
+        return $objConfig->{$property};
     }
 }
