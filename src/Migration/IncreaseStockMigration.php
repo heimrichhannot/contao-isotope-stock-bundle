@@ -34,7 +34,7 @@ class IncreaseStockMigration implements MigrationInterface
 
     public function run(): MigrationResult
     {
-        $config = $config = Isotope::getConfig();
+        $config = Isotope::getConfig();
         $states = StringUtil::deserialize($config->stockIncreaseOrderStates, true);
 
         foreach ($states as $id => $name) {
