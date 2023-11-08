@@ -7,7 +7,6 @@ use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Isotope\Interfaces\IsotopeProduct;
 use Isotope\Interfaces\IsotopeProductCollection;
-use Isotope\Isotope;
 use Isotope\Model\OrderStatus;
 use Isotope\Model\ProductCollection;
 use Isotope\Model\ProductCollection\Order;
@@ -35,10 +34,6 @@ class ValidateStockListener
         }
 
         if (!is_int($quantity)) {
-            if (null === $quantity) {
-                return $quantity;
-            }
-
             if (empty($quantity)) {
                 $quantity = 1;
             }
@@ -171,49 +166,12 @@ class ValidateStockListener
         if ($isPostCheckout) {
             foreach ($orders as $item) {
                 $product = $item->getProduct();
-
-                if ($this->getOverridableStockProperty('skipStockEdit', $product)) {
-                    continue;
-                }
-
                 $intQuantity = (int)$items->quantity;
-//                $intQuantity = $this->getTotalStockQuantity($item->quantity, $product);
-
-
                 $product->stock = (int)$product->stock - $intQuantity;
-
-//                if $product->stock <= 0 && !$this->getOverridableStockProperty('skipExemptionFromShippingWhenStockEmpty', $product)) {
-//                    $product->shipping_exempt = true;
-//                }
-
                 $product->save();
             }
         }
 
         return true;
-    }
-
-    /**
-     * Returns the config value.
-     *
-     * Checks if global value is overwritten by product or product type
-     *
-     * priorities (first is the most important):
-     * product, product type, global shop config.
-     */
-    public function getOverridableStockProperty(string $property, IsotopeProduct $product): mixed
-    {
-        // at first check for product and product type
-        if ($product->overrideStockShopConfig) {
-            return $product->{$property};
-        }
-
-        if ($product->getType()?->overrideStockShopConfig) {
-            return $product->getType()->{$property};
-        }
-
-        $objConfig = Isotope::getConfig();
-
-        return $objConfig->{$property};
     }
 }
