@@ -123,6 +123,11 @@ class ValidateStockListener
         // e.g. cancelled -> new => decrease the stock after validation
         elseif ($oldStatus->stock_increaseStock && !$newsStatus->stock_increaseStock) {
             foreach ($order->getItems() as $item) {
+                if (!$product = $item->getProduct()) {
+                    continue;
+                }
+
+
                 if (null !== ($product = $item->getProduct())) {
                     if (!$this->stockAttribute->validateQuantity($product, $item->quantity)) {
                         // if the validation breaks for only one product collection item -> cancel the order status transition
