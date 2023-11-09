@@ -23,10 +23,8 @@ class MaxOrderSizeAttribute extends AbstractAttribute
         if (null !== $product->maxOrderSize) {
             if ($quantity > $product->maxOrderSize) {
                 $this->addErrorMessage($this->translator->trans('MSC.maxOrderSizeExceeded', [
-                    '%name%' => $product->getName(),
-                    '%count%' => $product->maxOrderSize,
+                    $product->getName(), $product->maxOrderSize,
                 ], 'contao_default'));
-                $strErrorMessage = sprintf($GLOBALS['TL_LANG']['MSC']['maxOrderSizeExceeded'], $product->name, $product->maxOrderSize);
 
                 return false;
             }

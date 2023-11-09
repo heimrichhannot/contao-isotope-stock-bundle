@@ -25,12 +25,14 @@ class StockAttribute extends AbstractAttribute
         }
 
         if (0 === (int)$product->stock) {
-            $this->addErrorMessage($this->translator->trans('MSC.stockEmpty', ['%s' => $product->getName()], 'contao_default'));
+            $this->addErrorMessage($this->translator->trans('MSC.stockEmpty', [$product->getName()], 'contao_default'));
             return false;
         }
 
         if ($quantity > (int)$product->stock) {
-            $this->addErrorMessage('MSC.stockExceeded', ['%s' => $product->getName()], 'contao_default');
+            $this->addErrorMessage($this->translator->trans('MSC.stockExceeded', [
+                $product->getName(), (int)$product->stock,
+            ], 'contao_default'));
             return false;
         }
 

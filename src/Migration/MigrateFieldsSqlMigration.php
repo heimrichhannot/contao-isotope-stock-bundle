@@ -32,7 +32,7 @@ class MigrateFieldsSqlMigration implements MigrationInterface
 
     private function migrateFields(bool $execute = false): bool
     {
-        $fields = ['stock', 'initialStock'];
+        $fields = ['stock', 'initialStock', 'maxOrderSize'];
 
         $schemaManager = $this->connection->createSchemaManager();
         $schema        = $schemaManager->introspectSchema();

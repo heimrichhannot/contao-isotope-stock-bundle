@@ -18,5 +18,5 @@ $dca['fields']['maxOrderSize'] = [
     'inputType'  => 'text',
     'eval'       => ['tl_class' => 'w50', 'rgxp' => 'digit'],
     'attributes' => ['legend' => 'inventory_legend'],
-    'sql'        => "varchar(255) NOT NULL default ''",
+    'sql'        => "int(10) unsigned NULL",
 ];

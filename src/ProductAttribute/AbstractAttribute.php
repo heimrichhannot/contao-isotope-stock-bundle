@@ -17,7 +17,7 @@ abstract class AbstractAttribute implements ServiceSubscriberInterface
 
     public function isActive(IsotopeProduct $product): bool
     {
-        return in_array(self::getName(), $product->getType()->getAttributes());
+        return in_array(static::getName(), $product->getType()->getAttributes());
     }
 
     protected function addErrorMessage(string $message): void
