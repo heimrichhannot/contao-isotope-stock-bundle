@@ -1,0 +1,77 @@
+{% extends '@Contao/block_unsearchable' %}
+
+{% block content %}
+    {% block style %}
+        <style>
+            table.stockreport {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 2em;
+            }
+            .stockreport td {
+                border: 1px solid #000;
+                padding: 5px;
+                min-width: 4em;
+                position: relative;
+            }
+            .stockreport thead td {
+                font-weight: bold;
+                background-color: #eee;
+            }
+
+            .stockreport .progress {
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                width: 0;
+                height: calc(100% - 10px);
+                min-width: 5px;
+                max-width: calc(100% - 10px);
+                background-color: #5cb85c;
+                border-radius: 5px;
+                z-index: 0;
+            }
+            .stockreport .progress-text {
+                position: relative;
+                z-index: 1;
+                text-align: center;
+            }
+
+            .stockreport .stock-empty {
+                background-color: #ff0000;
+            }
+
+            .stockreport .stock-warning {
+                background-color: #ff9900;
+            }
+
+            .stockreport .stock-medium {
+                background-color: #5bc0de;
+            }
+        </style>
+    {% endblock %}
+    {% block table %}
+        {% for item in items|default %}
+            <table class="stockreport">
+                <thead>
+                    <td colspan="2">{{ item.title }}</td>
+                </thead>
+                <tbody>
+                {% for product in item.products|default %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td>
+                            {% if product.initialStock|default is not empty %}
+                                <div class="progress{% if product.stockPercent < 1 %} stock-empty{% elseif product.stockPercent < 25 %} stock-warning{% elseif product.stockPercent < 75 %}stock-medium{% endif %}" style="width: {{ product.stockPercent }}%"></div>
+                                <div class="progress-text"><strong>{{ product.stockPercent }}%</strong> ({{~ product.stock }}/{{ product.initialStock }})</div>
+                            {% else %}
+                                {{ product.stock }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+    {% endfor %}
+{% endblock %}
+{% endblock %}

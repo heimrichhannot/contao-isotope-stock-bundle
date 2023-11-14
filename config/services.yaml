@@ -4,4 +4,4 @@ services:
     autowire: true
 
   HeimrichHannot\IsotopeStockBundle\:
-    resource: '../src/{EventListener,Migration,ProductAttribute}/*'
+    resource: '../src/{Controller,EventListener,Migration,ProductAttribute}/*'
