@@ -48,6 +48,10 @@ class IsoStockReportModuleController extends AbstractFrontendModuleController
 
         while ($result->next()) {
             $product = $this->utils->model()->findModelInstanceByIdOrAlias('tl_iso_product', $result->id);
+            if (!$product || empty($product->initialStock)) {
+                continue;
+            }
+
             $category = 'category_' . $product->type;
 
             if (!isset($products[$category])) {
@@ -56,14 +60,11 @@ class IsoStockReportModuleController extends AbstractFrontendModuleController
             }
 
             $productData = $product->row();
-            $productData['stockPercent'] = '-';
             $productData['stock'] = $product->stock;
             $productData['initialStock'] = $product->initialStock;
 
-            if ($product->initialStock > 0 && '' !== $product->initialStock) {
-                $percent = floor($product->stock * 100 / $product->initialStock);
-                $productData['stockPercent'] = $percent;
-            }
+            $percent = floor($product->stock * 100 / $product->initialStock);
+            $productData['stockPercent'] = $percent;
 
             $products[$category]['products'][$product->id] = $productData;
         }
