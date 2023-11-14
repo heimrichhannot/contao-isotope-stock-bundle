@@ -12,6 +12,7 @@ This bundle add stock management to [Isotope eCommerce](https://github.com/isoto
   - set stock (and optional initial stock) on products
   - evaluate stock on order process
 - set max order size per product
+- stock report frontend module
 
 ## Usage
 
