@@ -20,6 +20,15 @@ abstract class AbstractAttribute implements ServiceSubscriberInterface
         return in_array(static::getName(), $product->getType()->getAttributes());
     }
 
+    public function isUsed(IsotopeProduct $product): bool
+    {
+        if (!$this->isActive($product)) {
+            return false;
+        }
+
+        return null !== $product->{static::getName()};
+    }
+
     protected function addErrorMessage(string $message): void
     {
         if ($this->utils()->container()->isFrontend()) {

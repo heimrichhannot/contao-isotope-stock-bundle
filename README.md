@@ -13,6 +13,7 @@ This bundle add stock management to [Isotope eCommerce](https://github.com/isoto
   - evaluate stock on order process
 - set max order size per product
 - stock report frontend module
+- twig filter
 
 ## Usage
 
@@ -30,3 +31,13 @@ This bundle add stock management to [Isotope eCommerce](https://github.com/isoto
 
 To activate stock management, the initial stock field or the max order size feature,
 just activate these attributes in your product type configuration.
+
+### Twig filter
+
+The twig filter `stock_attribute` can be used to check if a product uses a stock attribute.
+
+```twig
+{% if product|stock_attribute('initialStock') %}
+    {{ (roduct.stock / product.initialStock * 100)|round }}%
+{% endif %}
+```
