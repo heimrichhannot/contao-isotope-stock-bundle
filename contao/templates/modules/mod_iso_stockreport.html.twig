@@ -61,8 +61,8 @@
                     <tr>
                         <td>{{ product.name }}</td>
                         <td>
-                            {% if product.initialStock|default is not empty %}
-                                <div class="progress{% if product.stockPercent < 1 %} stock-empty{% elseif product.stockPercent < 25 %} stock-warning{% elseif product.stockPercent < 75 %}stock-medium{% endif %}" style="width: {{ product.stockPercent }}%"></div>
+                            {% if product|stock_attribute('initialStock') %}
+                                <div class="progress{% if product.stockPercent < 1 %} stock-empty{% elseif product.stockPercent < 25 %} stock-warning{% elseif product.stockPercent < 75 %} stock-medium{% endif %}" style="width: {{ product.stockPercent }}%"></div>
                                 <div class="progress-text"><strong>{{ product.stockPercent }}%</strong> ({{~ product.stock }}/{{ product.initialStock }})</div>
                             {% else %}
                                 {{ product.stock }}

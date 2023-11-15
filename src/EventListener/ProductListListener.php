@@ -7,6 +7,7 @@ use Contao\CoreBundle\ServiceAnnotation\Callback;
 use Contao\DataContainer;
 use Contao\Model\Collection;
 use Contao\System;
+use HeimrichHannot\IsotopeStockBundle\ProductAttribute\InitialStockAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Isotope\Backend\Product\Label;
@@ -23,7 +24,7 @@ class ProductListListener
     #[AsCallback(table: 'tl_iso_product', target: 'config.onload')]
     public function onLoadCallback(DataContainer $dc): void
     {
-        $where = $this->utils->database()->createWhereForSerializedBlob('attributes', ['stock']);
+        $where = $this->utils->database()->createWhereForSerializedBlob('attributes', [StockAttribute::getName(), InitialStockAttribute::getName()]);
 
         /** @var Collection|ProductType[] $types */
         $types = ProductType::findBy([$where->createOrWhere()], $where->values);
@@ -32,20 +33,31 @@ class ProductListListener
         }
 
         $stockActive = false;
+        $initialStockActive = false;
         foreach ($types as $type) {
             if (in_array(StockAttribute::getName(), $type->getAttributes())) {
                 $stockActive = true;
-                break;
+                if ($initialStockActive) {
+                    break;
+                }
+            }
+            if (in_array(InitialStockAttribute::getName(), $type->getAttributes())) {
+                $initialStockActive = true;
+                if ($stockActive) {
+                    break;
+                }
             }
         }
 
-        if (!$stockActive) {
-            return;
+        if ($stockActive) {
+            $GLOBALS['TL_DCA']['tl_iso_product']['list']['label']['fields'][] = 'stock';
+            $GLOBALS['TL_DCA']['tl_iso_product']['fields']['stock']['sorting'] = true;
         }
 
-        $GLOBALS['TL_DCA']['tl_iso_product']['list']['label']['fields'][] = 'stock';
-        $GLOBALS['TL_DCA']['tl_iso_product']['fields']['stock']['sorting'] = true;
-
+        if ($initialStockActive) {
+            $GLOBALS['TL_DCA']['tl_iso_product']['list']['label']['fields'][] = 'initialStock';
+            $GLOBALS['TL_DCA']['tl_iso_product']['fields']['initialStock']['sorting'] = true;
+        }
     }
 
 //    #[AsCallback(table: 'tl_iso_product', target: 'list.label.label')]
