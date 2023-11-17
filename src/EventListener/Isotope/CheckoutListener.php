@@ -2,6 +2,7 @@
 
 namespace HeimrichHannot\IsotopeStockBundle\EventListener\Isotope;
 
+use Doctrine\DBAL\Connection;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\MaxOrderSizeAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
 use Isotope\Model\ProductCollection\Order;
@@ -14,6 +15,7 @@ class CheckoutListener
     public function __construct(
         private StockAttribute $stockAttribute,
         private MaxOrderSizeAttribute $maxOrderSizeAttribute,
+        private Connection $connection
     ) {}
 
     /**
@@ -74,9 +76,9 @@ class CheckoutListener
         if ($isPostCheckout) {
             foreach ($orders as $item) {
                 $product = $item->getProduct();
-                $intQuantity = (int)$items->quantity;
-                $product->stock = (int)$product->stock - $intQuantity;
-                $product->save();
+                $intQuantity = (int)$item->quantity;
+                $newStock = (int)$product->stock - $intQuantity;
+                $this->connection->executeQuery("UPDATE ".$product::getTable()." SET stock = ? WHERE id = ?", [$newStock, $product->id]);
             }
         }
 
