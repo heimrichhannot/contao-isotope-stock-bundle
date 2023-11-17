@@ -31,7 +31,7 @@ class CheckoutListener
     /**
      * @IsotopeHook("postCheckout")
      */
-    public function onPostCheckout(Order $order, Checkout $module): void
+    public function onPostCheckout(Order $order, array $tokens): void
     {
         $this->validateStockCheckout($order, true);
     }
