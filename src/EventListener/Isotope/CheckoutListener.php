@@ -76,9 +76,14 @@ class CheckoutListener
         if ($isPostCheckout) {
             foreach ($orders as $item) {
                 $product = $item->getProduct();
-                $intQuantity = (int)$item->quantity;
-                $newStock = (int)$product->stock - $intQuantity;
-                $this->connection->executeQuery("UPDATE ".$product::getTable()." SET stock = ? WHERE id = ?", [$newStock, $product->id]);
+                if ($this->stockAttribute->isActive($product)) {
+                    $intQuantity = (int)$item->quantity;
+                    $newStock = (int)$product->stock - $intQuantity;
+                    if ($newStock < 0) {
+                        $newStock = 0;
+                    }
+                    $this->connection->executeQuery("UPDATE ".$product::getTable()." SET stock = ? WHERE id = ?", [$newStock, $product->id]);
+                }
             }
         }
 
