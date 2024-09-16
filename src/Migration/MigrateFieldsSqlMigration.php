@@ -4,6 +4,7 @@ namespace HeimrichHannot\IsotopeStockBundle\Migration;
 
 use Contao\CoreBundle\Migration\MigrationInterface;
 use Contao\CoreBundle\Migration\MigrationResult;
+use Contao\Database;
 use Doctrine\DBAL\Connection;
 
 class MigrateFieldsSqlMigration implements MigrationInterface
@@ -21,6 +22,13 @@ class MigrateFieldsSqlMigration implements MigrationInterface
 
     public function shouldRun(): bool
     {
+        if (!Database::getInstance()->fieldExists('stock', 'tl_iso_product')
+            || !Database::getInstance()->fieldExists('initialStock', 'tl_iso_product')
+            || !Database::getInstance()->fieldExists('maxOrderSize', 'tl_iso_product')
+        ) {
+            return false;
+        }
+
         return $this->migrateFields(false);
     }
 
