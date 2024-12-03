@@ -2,11 +2,13 @@
 
 namespace HeimrichHannot\IsotopeStockBundle\EventListener\Isotope;
 
+use Doctrine\DBAL\Connection;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\MaxOrderSizeAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Isotope\Model\OrderStatus;
 use Isotope\Model\ProductCollection\Order;
+use Isotope\Model\ProductCollectionItem;
 use Isotope\ServiceAnnotation\IsotopeHook;
 
 /**
@@ -15,15 +17,16 @@ use Isotope\ServiceAnnotation\IsotopeHook;
 class PreOrderStatusUpdateListener
 {
     public function __construct(
-        private Utils $utils,
-        private StockAttribute $stockAttribute,
-        private MaxOrderSizeAttribute $maxOrderSizeAttribute,
+        private readonly Connection            $connection,
+        private readonly Utils                 $utils,
+        private readonly StockAttribute        $stockAttribute,
+        private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
     )
     {
     }
 
     /**
-     * @return bool Cancel the order status transition
+     * @return bool Cancel the order status transition if the stock increase/decrease fails
      */
     public function __invoke(Order $order, OrderStatus $newsStatus, array $updates): bool
     {
@@ -32,52 +35,96 @@ class PreOrderStatusUpdateListener
             return false;
         }
 
-        $oldStatus = OrderStatus::findByPk($order->order_status);
-        if (!$oldStatus) {
+        if (!$oldStatus = OrderStatus::findByPk($order->order_status)) {
             return false;
         }
 
-        // e.g. new -> cancelled => increase the stock based on the order item's setQuantity-values (no validation required, of course)
-        if (!$oldStatus->stock_increaseStock && $newsStatus->stock_increaseStock) {
-            foreach ($order->getItems() as $item) {
-                $product = $item->getProduct();
-                if (!$product) {
-                    continue;
-                }
-
-                if ($this->stockAttribute->isActive($product)) {
-                    $product->stock = (int)$product->stock + (int)$item->quantity;
-                    $product->save();
-                }
-
-                if ($this->maxOrderSizeAttribute->isActive($product)) {
-                    if (!$this->maxOrderSizeAttribute->validateQuantity($product, $item->quantity)) {
-                        return true;
-                    }
-                }
-
-            }
+        if ((bool) $oldStatus->stock_increaseStock === (bool) $newsStatus->stock_increaseStock)
+            // No stock action change? Nothing to do here.
+        {
+            return false;
         }
-        // e.g. cancelled -> new => decrease the stock after validation
-        elseif ($oldStatus->stock_increaseStock && !$newsStatus->stock_increaseStock) {
-            foreach ($order->getItems() as $item) {
-                if (!$product = $item->getProduct()) {
-                    continue;
-                }
 
+        // Determine the appropriate callback based on stock change
+        //   e.g. new -> cancelled: increase the stock based on the ordered item's quantity
+        //   e.g. cancelled -> new: decrease the stock
+        $callback = !$oldStatus->stock_increaseStock && $newsStatus->stock_increaseStock
+            ? 'increaseStock'
+            : 'decreaseStock';
 
-                if (null !== ($product = $item->getProduct())) {
-                    if (!$this->stockAttribute->validateQuantity($product, $item->quantity)) {
-                        // if the validation breaks for only one product collection item -> cancel the order status transition
-                        return true;
-                    }
-                }
-
-                $product->stock = (int)$product->stock - (int)$item->quantity;
-                $product->save();
+        foreach ($order->getItems() as $item)
+        {
+            if (!$this->$callback($item))
+            {
+                return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * @param ProductCollectionItem $item
+     * @return bool False if the stock increase failed
+     * @noinspection PhpUnused
+     */
+    protected function increaseStock(ProductCollectionItem $item): bool
+    {
+        if (!$product = $item->getProduct()) {
+            return true;
+        }
+
+        if ($this->stockAttribute->isActive($product))
+        {
+            $newStock = (int)$product->stock + (int)$item->quantity;
+
+            $this->connection
+                ->prepare("UPDATE `{$product::getTable()}` SET stock = ? WHERE id = ?")
+                ->executeStatement([$newStock, $product->id]);
+
+            $product->stock = $newStock;
+        }
+
+        if ($this->maxOrderSizeAttribute->isActive($product)
+            && !$this->maxOrderSizeAttribute->validateQuantity($product, $item->quantity))
+            // validation needed after stock increase
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param ProductCollectionItem $item
+     * @return bool False if the stock decrease failed
+     * @noinspection PhpUnused
+     */
+    protected function decreaseStock(ProductCollectionItem $item): bool
+    {
+        if (!$product = $item->getProduct()) {
+            return true;
+        }
+
+        if (!$this->stockAttribute->validateQuantity($product, $item->quantity))
+            // validation needed before stock decrease
+            // if the validation breaks, cancel the order status transition
+        {
+            return false;
+        }
+
+        $newStock = (int)$product->stock - (int)$item->quantity;
+
+        if ($newStock < 0) {
+            return false;
+        }
+
+        $this->connection
+            ->prepare("UPDATE `{$product::getTable()}` SET stock = ? WHERE id = ?")
+            ->executeStatement([$newStock, $product->id]);
+
+        $product->stock = $newStock;
+
+        return true;
     }
 }

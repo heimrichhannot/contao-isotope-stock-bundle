@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2024-12-03
+- Fixed: [#2](https://github.com/heimrichhannot/contao-isotope-stock-bundle/issues/2) stock decrease on order cancel
+
 ## [0.1.2] - 2024-09-16
 - Fixed: exception in migration if fields not exist
 

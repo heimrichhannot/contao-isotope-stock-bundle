@@ -24,7 +24,7 @@ class StockAttribute extends AbstractAttribute
             return true;
         }
 
-        if (0 === (int)$product->stock) {
+        if ((int)$product->stock < 1) {
             $this->addErrorMessage($this->translator->trans('MSC.stockEmpty', [$product->getName()], 'contao_default'));
             return false;
         }
