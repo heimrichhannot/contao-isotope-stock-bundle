@@ -15,8 +15,8 @@ use Isotope\ServiceAnnotation\IsotopeHook;
 class UpdateItemInCollectionListener
 {
     public function __construct(
-        private StockAttribute $stockAttribute,
-        private MaxOrderSizeAttribute $maxOrderSizeAttribute,
+        private readonly StockAttribute $stockAttribute,
+        private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
     ) {}
 
     public function __invoke(ProductCollectionItem $item, array $set, ProductCollection $collection): array

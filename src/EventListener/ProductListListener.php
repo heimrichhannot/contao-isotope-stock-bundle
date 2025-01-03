@@ -3,14 +3,11 @@
 namespace HeimrichHannot\IsotopeStockBundle\EventListener;
 
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
-use Contao\CoreBundle\ServiceAnnotation\Callback;
 use Contao\DataContainer;
 use Contao\Model\Collection;
-use Contao\System;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\InitialStockAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
 use HeimrichHannot\UtilsBundle\Util\Utils;
-use Isotope\Backend\Product\Label;
 use Isotope\Model\ProductType;
 
 class ProductListListener

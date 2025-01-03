@@ -10,7 +10,7 @@ class StockAttribute extends AbstractAttribute
     public const NAME = 'stock';
 
     public function __construct(
-        private TranslatorInterface $translator,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     public static function getName(): string

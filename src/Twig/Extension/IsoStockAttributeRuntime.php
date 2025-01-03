@@ -11,9 +11,9 @@ use Twig\Extension\RuntimeExtensionInterface;
 class IsoStockAttributeRuntime implements RuntimeExtensionInterface
 {
     public function __construct(
-        private StockAttribute $stockAttribute,
-        private InitialStockAttribute $initialStockAttribute,
-        private MaxOrderSizeAttribute $maxStockAttribute,
+        private readonly StockAttribute $stockAttribute,
+        private readonly InitialStockAttribute $initialStockAttribute,
+        private readonly MaxOrderSizeAttribute $maxStockAttribute,
     )
     {
     }

@@ -13,9 +13,9 @@ use Isotope\ServiceAnnotation\IsotopeHook;
 class CheckoutListener
 {
     public function __construct(
-        private StockAttribute $stockAttribute,
-        private MaxOrderSizeAttribute $maxOrderSizeAttribute,
-        private Connection $connection
+        private readonly StockAttribute $stockAttribute,
+        private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
+        private readonly Connection $connection
     ) {}
 
     /**

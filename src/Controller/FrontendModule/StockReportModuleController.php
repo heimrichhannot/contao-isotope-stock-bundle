@@ -8,28 +8,23 @@
 
 namespace HeimrichHannot\IsotopeStockBundle\Controller\FrontendModule;
 
+use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\Controller;
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
-use Contao\Database;
 use Contao\Model\Collection;
 use Contao\ModuleModel;
-use Contao\System;
 use Contao\Template;
 use Doctrine\DBAL\Connection;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\InitialStockAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
-use HeimrichHannot\UtilsBundle\Model\ModelUtil;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Isotope\Model\Product;
 use Isotope\Model\ProductType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * @FrontendModule(StockReportModuleController::TYPE, category="isotope")
- */
+#[AsFrontendModule(StockReportModuleController::TYPE, category: 'isotope')]
 class StockReportModuleController extends AbstractFrontendModuleController
 {
     public const TYPE = 'iso_stockreport';

@@ -10,7 +10,7 @@ class MaxOrderSizeAttribute extends AbstractAttribute
     public const NAME = 'maxOrderSize';
 
     public function __construct(
-        private TranslatorInterface $translator,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     public static function getName(): string

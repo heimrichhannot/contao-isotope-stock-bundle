@@ -8,7 +8,7 @@
     "contao/core-bundle": "^4.13",
     "doctrine/dbal": "^2.12 || ^3.0",
     "heimrichhannot/contao-utils-bundle": "^2.232.0 || ^3.0",
-    "symfony/http-kernel": "^5.4",
+    "symfony/http-kernel": "^5.4 || ^6.0",
     "symfony/translation-contracts": "^1.0 || ^2.0 || ^3.0"
   },
   "autoload": {
@@ -18,5 +18,12 @@
   },
   "extra": {
     "contao-manager-plugin": "HeimrichHannot\\IsotopeStockBundle\\ContaoManager\\Plugin"
+  },
+  "require-dev": {
+    "rector/rector": "^1.2",
+    "contao/contao-rector": "dev-main",
+    "symplify/easy-coding-standard": "^12.5",
+    "phpstan/phpstan": "^1.12",
+    "phpstan/phpstan-symfony": "^1.4"
   }
 }

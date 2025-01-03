@@ -10,7 +10,7 @@ use Doctrine\DBAL\Connection;
 class MigrateFieldsSqlMigration implements MigrationInterface
 {
     public function __construct(
-        private Connection $connection,
+        private readonly Connection $connection,
     )
     {
     }

@@ -14,8 +14,8 @@ use Isotope\ServiceAnnotation\IsotopeHook;
 class AddProductToCollectionListener
 {
     public function __construct(
-        private StockAttribute $stockAttribute,
-        private MaxOrderSizeAttribute $maxOrderSizeAttribute,
+        private readonly StockAttribute $stockAttribute,
+        private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
     )
     {
     }
