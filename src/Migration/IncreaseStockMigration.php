@@ -11,7 +11,6 @@ use Isotope\Model\OrderStatus;
 
 class IncreaseStockMigration implements MigrationInterface
 {
-
     public function getName(): string
     {
         return 'Isotope Stock increase stock migration';
@@ -40,7 +39,7 @@ class IncreaseStockMigration implements MigrationInterface
         foreach ($states as $id => $name) {
             $objOrderStatus = OrderStatus::findByPk($id);
 
-            if ($objOrderStatus === null) {
+            if (null === $objOrderStatus) {
                 continue;
             }
 

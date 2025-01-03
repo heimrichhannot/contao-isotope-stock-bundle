@@ -43,6 +43,4 @@ abstract class AbstractAttribute implements ServiceSubscriberInterface
     {
         return $this->container->get(__METHOD__);
     }
-
-
 }

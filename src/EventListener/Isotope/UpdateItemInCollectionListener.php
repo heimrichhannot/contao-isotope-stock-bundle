@@ -17,7 +17,8 @@ class UpdateItemInCollectionListener
     public function __construct(
         private readonly StockAttribute $stockAttribute,
         private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
-    ) {}
+    ) {
+    }
 
     public function __invoke(ProductCollectionItem $item, array $set, ProductCollection $collection): array
     {
@@ -27,13 +28,13 @@ class UpdateItemInCollectionListener
         }
 
         if ($this->stockAttribute->isActive($product)) {
-            if (!$this->stockAttribute->validateQuantity($product, (int)$set['quantity'])) {
+            if (!$this->stockAttribute->validateQuantity($product, (int) $set['quantity'])) {
                 Controller::reload();
             }
         }
 
         if ($this->maxOrderSizeAttribute->isActive($product)) {
-            if (!$this->maxOrderSizeAttribute->validateQuantity($product, (int)$set['quantity'])) {
+            if (!$this->maxOrderSizeAttribute->validateQuantity($product, (int) $set['quantity'])) {
                 Controller::reload();
             }
         }

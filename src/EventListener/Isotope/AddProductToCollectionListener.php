@@ -16,8 +16,7 @@ class AddProductToCollectionListener
     public function __construct(
         private readonly StockAttribute $stockAttribute,
         private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
-    )
-    {
+    ) {
     }
 
     public function __invoke(IsotopeProduct $product, $quantity, IsotopeProductCollection $collection, array $config): int
@@ -26,11 +25,12 @@ class AddProductToCollectionListener
             if (empty($quantity)) {
                 $quantity = 1;
             } else {
-                $quantity = (int)$quantity;
+                $quantity = (int) $quantity;
             }
         }
 
         $quantity = $this->validateStock($product, $quantity);
+
         return $this->validateMaxOrder($product, $quantity);
     }
 

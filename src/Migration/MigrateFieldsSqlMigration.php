@@ -11,8 +11,7 @@ class MigrateFieldsSqlMigration implements MigrationInterface
 {
     public function __construct(
         private readonly Connection $connection,
-    )
-    {
+    ) {
     }
 
     public function getName(): string
@@ -35,6 +34,7 @@ class MigrateFieldsSqlMigration implements MigrationInterface
     public function run(): MigrationResult
     {
         $result = $this->migrateFields(true);
+
         return new MigrationResult($result, 'Migrated fields stock and initialStock.');
     }
 
@@ -43,7 +43,7 @@ class MigrateFieldsSqlMigration implements MigrationInterface
         $fields = ['stock', 'initialStock', 'maxOrderSize'];
 
         $schemaManager = $this->connection->createSchemaManager();
-        $schema        = $schemaManager->introspectSchema();
+        $schema = $schemaManager->introspectSchema();
 
         foreach ($fields as $fieldName) {
             $column = $schema->getTable('tl_iso_product')->getColumn($fieldName);
@@ -53,7 +53,7 @@ class MigrateFieldsSqlMigration implements MigrationInterface
                 }
                 $column->setNotnull(false);
             }
-            if ($column->getDefault() !== null) {
+            if (null !== $column->getDefault()) {
                 if (!$execute) {
                     return true;
                 }
@@ -73,12 +73,12 @@ class MigrateFieldsSqlMigration implements MigrationInterface
         }
 
         foreach ($fields as $fieldName) {
-            $result = $this->connection->executeQuery("SELECT id FROM `tl_iso_product` WHERE ".$fieldName."='' AND ".$fieldName." != '0'");
+            $result = $this->connection->executeQuery('SELECT id FROM `tl_iso_product` WHERE ' . $fieldName . "='' AND " . $fieldName . " != '0'");
             if ($result->rowCount() < 1) {
                 continue;
             }
             if ($execute) {
-                $this->connection->executeQuery("UPDATE `tl_iso_product` SET ".$fieldName."=NULL WHERE ".$fieldName."='' AND ".$fieldName." != '0'");
+                $this->connection->executeQuery('UPDATE `tl_iso_product` SET ' . $fieldName . '=NULL WHERE ' . $fieldName . "='' AND " . $fieldName . " != '0'");
             } else {
                 return true;
             }

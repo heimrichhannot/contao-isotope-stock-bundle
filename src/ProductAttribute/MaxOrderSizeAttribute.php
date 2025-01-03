@@ -11,7 +11,8 @@ class MaxOrderSizeAttribute extends AbstractAttribute
 
     public function __construct(
         private readonly TranslatorInterface $translator,
-    ) {}
+    ) {
+    }
 
     public static function getName(): string
     {

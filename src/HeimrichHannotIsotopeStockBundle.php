@@ -10,5 +10,4 @@ class HeimrichHannotIsotopeStockBundle extends Bundle
     {
         return \dirname(__DIR__);
     }
-
 }

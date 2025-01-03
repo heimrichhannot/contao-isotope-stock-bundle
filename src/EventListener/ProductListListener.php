@@ -14,8 +14,7 @@ class ProductListListener
 {
     public function __construct(
         protected Utils $utils,
-    )
-    {
+    ) {
     }
 
     #[AsCallback(table: 'tl_iso_product', target: 'config.onload')]
@@ -57,16 +56,16 @@ class ProductListListener
         }
     }
 
-//    #[AsCallback(table: 'tl_iso_product', target: 'list.label.label')]
-//    public function onListLabelLabelCallback(array $row, string $label, DataContainer $dc, array $labels): array
-//    {
-//        $isotopeCallback = System::importStatic(Label::class);
-//        $labels = $isotopeCallback->generate($row, $label, $dc, $labels);
-//
-//        if (($key = array_search('stock', $GLOBALS['TL_DCA']['tl_iso_product']['list']['label']['fields'])) === false) {
-//            return $labels;
-//        }
-//
-//        return $labels;
-//    }
+    //    #[AsCallback(table: 'tl_iso_product', target: 'list.label.label')]
+    //    public function onListLabelLabelCallback(array $row, string $label, DataContainer $dc, array $labels): array
+    //    {
+    //        $isotopeCallback = System::importStatic(Label::class);
+    //        $labels = $isotopeCallback->generate($row, $label, $dc, $labels);
+    //
+    //        if (($key = array_search('stock', $GLOBALS['TL_DCA']['tl_iso_product']['list']['label']['fields'])) === false) {
+    //            return $labels;
+    //        }
+    //
+    //        return $labels;
+    //    }
 }

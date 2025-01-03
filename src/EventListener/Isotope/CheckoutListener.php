@@ -11,14 +11,14 @@ use Isotope\Model\ProductCollection\Order;
 use Isotope\Module\Checkout;
 use Isotope\ServiceAnnotation\IsotopeHook;
 
-
 class CheckoutListener
 {
     public function __construct(
         private readonly StockAttribute $stockAttribute,
         private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
-        private readonly Connection $connection
-    ) {}
+        private readonly Connection $connection,
+    ) {
+    }
 
     /**
      * @IsotopeHook("preCheckout")
@@ -79,8 +79,8 @@ class CheckoutListener
             foreach ($orders as $item) {
                 $product = $item->getProduct();
                 if ($this->stockAttribute->isActive($product)) {
-                    $intQuantity = (int)$item->quantity;
-                    $newStock = (int)$product->stock - $intQuantity;
+                    $intQuantity = (int) $item->quantity;
+                    $newStock = (int) $product->stock - $intQuantity;
                     if ($newStock < 0) {
                         $newStock = 0;
                     }

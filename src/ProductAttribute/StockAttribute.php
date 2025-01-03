@@ -11,7 +11,8 @@ class StockAttribute extends AbstractAttribute
 
     public function __construct(
         private readonly TranslatorInterface $translator,
-    ) {}
+    ) {
+    }
 
     public static function getName(): string
     {
@@ -24,19 +25,20 @@ class StockAttribute extends AbstractAttribute
             return true;
         }
 
-        if ((int)$product->stock < 1) {
+        if ((int) $product->stock < 1) {
             $this->addErrorMessage($this->translator->trans('MSC.stockEmpty', [$product->getName()], 'contao_default'));
+
             return false;
         }
 
-        if ($quantity > (int)$product->stock) {
+        if ($quantity > (int) $product->stock) {
             $this->addErrorMessage($this->translator->trans('MSC.stockExceeded', [
-                $product->getName(), (int)$product->stock,
+                $product->getName(), (int) $product->stock,
             ], 'contao_default'));
+
             return false;
         }
 
         return true;
     }
-
 }

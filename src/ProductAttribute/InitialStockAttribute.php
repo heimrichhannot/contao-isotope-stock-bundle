@@ -19,10 +19,10 @@ class InitialStockAttribute extends AbstractAttribute
             if (0 === $product->{static::getName()}) {
                 return false;
             }
+
             return true;
         }
+
         return false;
     }
-
-
 }

@@ -19,12 +19,11 @@ use Isotope\ServiceAnnotation\IsotopeHook;
 class PreOrderStatusUpdateListener
 {
     public function __construct(
-        private readonly Connection            $connection,
-        private readonly Utils                 $utils,
-        private readonly StockAttribute        $stockAttribute,
+        private readonly Connection $connection,
+        private readonly Utils $utils,
+        private readonly StockAttribute $stockAttribute,
         private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
-    )
-    {
+    ) {
     }
 
     /**
@@ -41,9 +40,8 @@ class PreOrderStatusUpdateListener
             return false;
         }
 
-        if ((bool) $oldStatus->stock_increaseStock === (bool) $newsStatus->stock_increaseStock)
+        if ((bool) $oldStatus->stock_increaseStock === (bool) $newsStatus->stock_increaseStock) {
             // No stock action change? Nothing to do here.
-        {
             return false;
         }
 
@@ -54,10 +52,8 @@ class PreOrderStatusUpdateListener
             ? 'increaseStock'
             : 'decreaseStock';
 
-        foreach ($order->getItems() as $item)
-        {
-            if (!$this->$callback($item))
-            {
+        foreach ($order->getItems() as $item) {
+            if (!$this->$callback($item)) {
                 return true;
             }
         }
@@ -66,8 +62,8 @@ class PreOrderStatusUpdateListener
     }
 
     /**
-     * @param ProductCollectionItem $item
      * @return bool False if the stock increase failed
+     *
      * @noinspection PhpUnused
      */
     protected function increaseStock(ProductCollectionItem $item): bool
@@ -76,9 +72,8 @@ class PreOrderStatusUpdateListener
             return true;
         }
 
-        if ($this->stockAttribute->isActive($product))
-        {
-            $newStock = (int)$product->stock + (int)$item->quantity;
+        if ($this->stockAttribute->isActive($product)) {
+            $newStock = (int) $product->stock + (int) $item->quantity;
 
             if ($product instanceof Model) {
                 $table = $product::getTable();
@@ -94,9 +89,8 @@ class PreOrderStatusUpdateListener
         }
 
         if ($this->maxOrderSizeAttribute->isActive($product)
-            && !$this->maxOrderSizeAttribute->validateQuantity($product, $item->quantity))
+            && !$this->maxOrderSizeAttribute->validateQuantity($product, $item->quantity)) {
             // validation needed after stock increase
-        {
             return false;
         }
 
@@ -104,8 +98,8 @@ class PreOrderStatusUpdateListener
     }
 
     /**
-     * @param ProductCollectionItem $item
      * @return bool False if the stock decrease failed
+     *
      * @noinspection PhpUnused
      */
     protected function decreaseStock(ProductCollectionItem $item): bool
@@ -114,14 +108,13 @@ class PreOrderStatusUpdateListener
             return true;
         }
 
-        if (!$this->stockAttribute->validateQuantity($product, $item->quantity))
+        if (!$this->stockAttribute->validateQuantity($product, $item->quantity)) {
             // validation needed before stock decrease
             // if the validation breaks, cancel the order status transition
-        {
             return false;
         }
 
-        $newStock = (int)$product->stock - (int)$item->quantity;
+        $newStock = (int) $product->stock - (int) $item->quantity;
 
         if ($newStock < 0) {
             return false;

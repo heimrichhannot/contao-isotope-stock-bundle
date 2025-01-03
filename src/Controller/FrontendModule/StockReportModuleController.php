@@ -8,9 +8,9 @@
 
 namespace HeimrichHannot\IsotopeStockBundle\Controller\FrontendModule;
 
-use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\Controller;
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Model\Collection;
 use Contao\ModuleModel;
@@ -31,17 +31,20 @@ class StockReportModuleController extends AbstractFrontendModuleController
 
     public function __construct(
         protected ContaoFramework $framework,
-        protected Utils           $utils,
-        protected Connection     $connection,
+        protected Utils $utils,
+        protected Connection $connection,
         protected InitialStockAttribute $initialStockAttribute,
         protected StockAttribute $stockAttribute,
-    ) {}
+    ) {
+    }
 
     protected function getResponse(Template $template, ModuleModel $model, Request $request): ?Response
     {
         $where = $this->utils->database()->createWhereForSerializedBlob('attributes', [StockAttribute::getName()]);
         /** @var Collection|ProductType[] $types */
-        $types = ProductType::findBy([$where->createOrWhere()], $where->values, ['order' => 'name ASC']);
+        $types = ProductType::findBy([$where->createOrWhere()], $where->values, [
+            'order' => 'name ASC',
+        ]);
 
         $products = [];
         if ($types) {
@@ -54,9 +57,6 @@ class StockReportModuleController extends AbstractFrontendModuleController
         return $template->getResponse();
     }
 
-    /**
-     * @param Collection $types
-     */
     private function generateProductList(Collection $types): array
     {
         Controller::loadDataContainer('tl_iso_product');
@@ -88,12 +88,12 @@ class StockReportModuleController extends AbstractFrontendModuleController
                     continue;
                 }
 
-//                $productData = $product->row();
+                //                $productData = $product->row();
 
                 if ($this->initialStockAttribute->isUsed($product) && $product->initialStock > 0) {
                     $product->stockPercent = floor($product->stock * 100 / $product->initialStock);
 
-//                    $productData['stockPercent'] = floor($product->stock * 100 / $product->initialStock);
+                    //                    $productData['stockPercent'] = floor($product->stock * 100 / $product->initialStock);
                 }
 
                 $products[$category]['products'][$product->id] = $product;

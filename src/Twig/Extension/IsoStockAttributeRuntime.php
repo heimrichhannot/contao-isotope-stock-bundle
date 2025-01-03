@@ -14,8 +14,7 @@ class IsoStockAttributeRuntime implements RuntimeExtensionInterface
         private readonly StockAttribute $stockAttribute,
         private readonly InitialStockAttribute $initialStockAttribute,
         private readonly MaxOrderSizeAttribute $maxStockAttribute,
-    )
-    {
+    ) {
     }
 
     public function isIsoStockAttributeActive($product, string $attribute = 'stock'): bool
