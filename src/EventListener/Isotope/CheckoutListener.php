@@ -2,9 +2,11 @@
 
 namespace HeimrichHannot\IsotopeStockBundle\EventListener\Isotope;
 
+use Contao\Model;
 use Doctrine\DBAL\Connection;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\MaxOrderSizeAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
+use Isotope\Model\Product;
 use Isotope\Model\ProductCollection\Order;
 use Isotope\Module\Checkout;
 use Isotope\ServiceAnnotation\IsotopeHook;
@@ -82,7 +84,12 @@ class CheckoutListener
                     if ($newStock < 0) {
                         $newStock = 0;
                     }
-                    $this->connection->executeQuery("UPDATE ".$product::getTable()." SET stock = ? WHERE id = ?", [$newStock, $product->id]);
+                    if ($product instanceof Model) {
+                        $table = $product::getTable();
+                    } else {
+                        $table = Product::getTable();
+                    }
+                    $this->connection->executeQuery("UPDATE $table SET stock = ? WHERE id = ?", [$newStock, $product->id]);
                 }
             }
         }

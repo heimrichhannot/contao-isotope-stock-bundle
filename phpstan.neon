@@ -1,0 +1,13 @@
+parameters:
+  level: 3
+  paths:
+    - src
+    - contao
+  universalObjectCratesClasses:
+    - Isotope\Interfaces\IsotopeProduct
+    - Isotope\Model\Config
+    - Isotope\Model\OrderStatus
+#    - Contao\Model
+    - Contao\Template
+includes:
+  - vendor/phpstan/phpstan-symfony/extension.neon

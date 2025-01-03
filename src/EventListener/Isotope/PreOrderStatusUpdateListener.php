@@ -2,11 +2,13 @@
 
 namespace HeimrichHannot\IsotopeStockBundle\EventListener\Isotope;
 
+use Contao\Model;
 use Doctrine\DBAL\Connection;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\MaxOrderSizeAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Isotope\Model\OrderStatus;
+use Isotope\Model\Product;
 use Isotope\Model\ProductCollection\Order;
 use Isotope\Model\ProductCollectionItem;
 use Isotope\ServiceAnnotation\IsotopeHook;
@@ -78,8 +80,14 @@ class PreOrderStatusUpdateListener
         {
             $newStock = (int)$product->stock + (int)$item->quantity;
 
+            if ($product instanceof Model) {
+                $table = $product::getTable();
+            } else {
+                $table = Product::getTable();
+            }
+
             $this->connection
-                ->prepare("UPDATE `{$product::getTable()}` SET stock = ? WHERE id = ?")
+                ->prepare("UPDATE $table SET stock = ? WHERE id = ?")
                 ->executeStatement([$newStock, $product->id]);
 
             $product->stock = $newStock;
@@ -119,8 +127,14 @@ class PreOrderStatusUpdateListener
             return false;
         }
 
+        if ($product instanceof Model) {
+            $table = $product::getTable();
+        } else {
+            $table = Product::getTable();
+        }
+
         $this->connection
-            ->prepare("UPDATE `{$product::getTable()}` SET stock = ? WHERE id = ?")
+            ->prepare("UPDATE $table SET stock = ? WHERE id = ?")
             ->executeStatement([$newStock, $product->id]);
 
         $product->stock = $newStock;
