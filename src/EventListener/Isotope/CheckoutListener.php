@@ -43,55 +43,45 @@ class CheckoutListener
     private function validateStockCheckout(Order $order, bool $isPostCheckout = false): bool
     {
         $items = $order->getItems();
-        $orders = [];
+        $postCheckoutActiveStockItems = [];
 
-        foreach ($items as $item) {
-            $product = $item->getProduct();
-            if (!$product) {
+        foreach ($items as $item)
+        {
+            if (!$product = $item->getProduct()) {
                 continue;
             }
 
-            $continue = false;
-            if ($this->stockAttribute->isActive($product)) {
-                if (!$this->stockAttribute->validateQuantity($product, $item->quantity)) {
-                    return false;
-                }
-                $continue = true;
-            }
-            if ($this->maxOrderSizeAttribute->isActive($product)) {
-                if (!$this->maxOrderSizeAttribute->validateQuantity($product, $item->quantity)) {
-                    return false;
-                }
-                $continue = true;
+            $stockActive = $this->stockAttribute->isActive($product);
+            if ($stockActive && !$this->stockAttribute->validateQuantity($product, $item->quantity)) {
+                return false;
             }
 
-            if (!$continue) {
-                continue;
+            $maxActive = $this->maxOrderSizeAttribute->isActive($product);
+            if ($maxActive && !$this->maxOrderSizeAttribute->validateQuantity($product, $item->quantity)) {
+                return false;
             }
 
-            if ($isPostCheckout) {
-                $orders[] = $item;
+            if ($isPostCheckout && $stockActive) {
+                $postCheckoutActiveStockItems[] = $item;
             }
         }
 
         // save new stock
-        if ($isPostCheckout) {
-            foreach ($orders as $item) {
-                $product = $item->getProduct();
-                if ($this->stockAttribute->isActive($product)) {
-                    $intQuantity = (int) $item->quantity;
-                    $newStock = (int) $product->stock - $intQuantity;
-                    if ($newStock < 0) {
-                        $newStock = 0;
-                    }
-                    if ($product instanceof Model) {
-                        $table = $product::getTable();
-                    } else {
-                        $table = Product::getTable();
-                    }
-                    $this->connection->executeQuery("UPDATE $table SET stock = ? WHERE id = ?", [$newStock, $product->id]);
-                }
+        foreach ($postCheckoutActiveStockItems as $item)
+        {
+            if (!$product = $item->getProduct()) {
+                continue;
             }
+
+            $newStock = (int) $product->stock - (int) $item->quantity;
+
+            if ($newStock < 0) {
+                $newStock = 0;
+            }
+
+            $table = $product instanceof Model ? $product::getTable() : Product::getTable();
+
+            $this->connection->executeQuery("UPDATE $table SET stock = ? WHERE id = ?", [$newStock, $product->id]);
         }
 
         return true;
