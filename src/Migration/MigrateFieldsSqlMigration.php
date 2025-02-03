@@ -74,7 +74,9 @@ class MigrateFieldsSqlMigration implements MigrationInterface
 
         foreach ($fields as $fieldName) {
             $result = $this->connection->executeQuery('SELECT id FROM `tl_iso_product` WHERE ' . $fieldName . "='' AND " . $fieldName . " != '0'");
-            if ($result->rowCount() < 1) {
+            $rowCount = $result->rowCount();
+            $result->free();
+            if ($rowCount < 1) {
                 continue;
             }
             if ($execute) {

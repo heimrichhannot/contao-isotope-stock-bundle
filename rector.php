@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Contao\Rector\Set\ContaoLevelSetList;
 use Contao\Rector\Set\ContaoSetList;
 use Rector\Config\RectorConfig;
+use Rector\Php84\Rector\Param\ExplicitNullableParamTypeRector;
 use Rector\Set\ValueObject\LevelSetList;
-use Rector\Set\ValueObject\SetList;
 use Rector\Symfony\Set\SymfonySetList;
 use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
 
@@ -16,11 +16,11 @@ return RectorConfig::configure()
     ])
     ->withRules([
         AddVoidReturnTypeWhereNoReturnRector::class,
+        ExplicitNullableParamTypeRector::class
     ])
 
     ->withImportNames(importShortClasses: false, removeUnusedImports: true)
     ->withSets([
-        SetList::PHP_81,
         LevelSetList::UP_TO_PHP_81,
         SymfonySetList::SYMFONY_54,
         SymfonySetList::SYMFONY_CONSTRUCTOR_INJECTION,
