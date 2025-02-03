@@ -12,6 +12,7 @@ use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRect
 
 return RectorConfig::configure()
     ->withPaths([
+        __DIR__ . '/contao',
         __DIR__ . '/src',
     ])
     ->withRules([

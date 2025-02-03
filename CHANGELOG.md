@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.5] - 2025-02-03
+- Fixed: migration issue (Issue: [#3](https://github.com/heimrichhannot/contao-isotope-stock-bundle/issues/3), Fix: [#4](https://github.com/heimrichhannot/contao-isotope-stock-bundle/pull/4))
+
 ## [0.1.4] - 2025-01-23
 - Refactored: IsoCheckoutListener.php
 

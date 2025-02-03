@@ -45,8 +45,7 @@ class CheckoutListener
         $items = $order->getItems();
         $postCheckoutActiveStockItems = [];
 
-        foreach ($items as $item)
-        {
+        foreach ($items as $item) {
             if (!$product = $item->getProduct()) {
                 continue;
             }
@@ -67,8 +66,7 @@ class CheckoutListener
         }
 
         // save new stock
-        foreach ($postCheckoutActiveStockItems as $item)
-        {
+        foreach ($postCheckoutActiveStockItems as $item) {
             if (!$product = $item->getProduct()) {
                 continue;
             }
