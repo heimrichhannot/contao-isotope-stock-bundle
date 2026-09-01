@@ -5,6 +5,8 @@ services:
 
   HeimrichHannot\IsotopeStockBundle\:
     resource: '../src/{Controller,EventListener,Migration,ProductAttribute,ProductCollection,Stock,Twig}/*'
+    # A value object, not a service — it is only ever constructed with new
+    exclude: '../src/Stock/OrderedQuantity.php'
 
   # The migrations are tagged by hand on purpose. Contao autoconfigures every MigrationInterface with
   # a priority-less "contao.migration" tag, and TaggedMigrationsPass only ever reads the first tag of

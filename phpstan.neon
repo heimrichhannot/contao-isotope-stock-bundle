@@ -1,5 +1,9 @@
 parameters:
   level: 6
+  # Contao's model PHPDoc is not trustworthy enough to narrow on: findAll() is annotated
+  # "Collection|null" but callers still guard against other shapes. With PHPDoc types treated as
+  # certain, every such guard is reported as dead code.
+  treatPhpDocTypesAsCertain: false
   paths:
     - src
     - contao

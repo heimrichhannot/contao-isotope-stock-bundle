@@ -68,6 +68,7 @@ class MigrateFieldsSqlMigration extends AbstractMigration
      * Columns that are still NOT NULL or carry a default.
      *
      * @return list<string>
+     *
      * @throws SchemaException
      */
     private function getConstrainedFields(): array
@@ -99,6 +100,7 @@ class MigrateFieldsSqlMigration extends AbstractMigration
      * Columns holding an empty string where NULL is meant.
      *
      * @return list<string>
+     *
      * @throws Exception
      */
     private function getFieldsWithEmptyValues(): array

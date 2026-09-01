@@ -13,6 +13,7 @@ namespace HeimrichHannot\IsotopeStockBundle\Controller\ContentElement;
 use Contao\ContentModel;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsContentElement;
 use Contao\CoreBundle\Twig\FragmentTemplate;
+use Contao\Model\Collection;
 use Doctrine\DBAL\Connection;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\InitialStockAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
@@ -79,7 +80,7 @@ class StockReportController extends AbstractContentElementController
             return [];
         }
 
-        if (!\is_iterable($typeModels)) {
+        if (!$typeModels instanceof Collection) {
             return [];
         }
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use PhpCsFixer\Fixer\Basic\BracesPositionFixer;
+use PhpCsFixer\Fixer\Basic\SingleLineEmptyBodyFixer;
 use PhpCsFixer\Fixer\Import\NoUnusedImportsFixer;
 use PhpCsFixer\Fixer\Operator\NotOperatorWithSuccessorSpaceFixer;
 use PhpCsFixer\Fixer\Whitespace\MethodChainingIndentationFixer;
@@ -20,6 +21,10 @@ return ECSConfig::configure()
     ->withRules([
         NoUnusedImportsFixer::class,
         BracesPositionFixer::class,
+        // An empty body stays abbreviated as "{}" on the signature line. The Symfony set below
+        // switches this off ('single_line_empty_body' => false), which together with
+        // BracesPositionFixer would expand every empty constructor body onto two lines.
+        SingleLineEmptyBodyFixer::class,
     ])
 
     // add sets - group of rules
@@ -33,13 +38,10 @@ return ECSConfig::configure()
     ->withPhpCsFixerSets(symfony: true)
     ->withSkip([
         NotOperatorWithSuccessorSpaceFixer::class,
-        // Keep data provider rows on one line — that is what makes a table of cases readable
-        ArrayListItemNewlineFixer::class => [
-            __DIR__ . '/tests',
-        ],
-        ArrayOpenerAndCloserNewlineFixer::class => [
-            __DIR__ . '/tests',
-        ],
+        // A short array stays on one line. Exploding every array argument and every data provider
+        // row over three lines buys nothing and costs a lot of vertical space.
+        ArrayListItemNewlineFixer::class,
+        ArrayOpenerAndCloserNewlineFixer::class,
         MethodChainingIndentationFixer::class => [
             '*/DependencyInjection/Configuration.php',
         ],

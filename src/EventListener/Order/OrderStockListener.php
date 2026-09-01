@@ -27,7 +27,6 @@ readonly class OrderStockListener
         // .pre listener stopped propagation and the callback never ran at all — in both cases there
         // is no order to take anything out of stock for. The generic result type claims it cannot be
         // null, which is only true on the happy path.
-        // @phpstan-ignore identical.alwaysFalse
         if (null !== $event->exception || null === $event->getResult()) {
             return;
         }
