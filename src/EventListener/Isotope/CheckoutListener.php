@@ -11,14 +11,13 @@ use Isotope\Model\ProductCollection\Order;
 use Isotope\Module\Checkout;
 use Isotope\ServiceAnnotation\IsotopeHook;
 
-class CheckoutListener
+readonly class CheckoutListener
 {
     public function __construct(
-        private readonly StockAttribute $stockAttribute,
-        private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
-        private readonly Connection $connection,
-    ) {
-    }
+        private StockAttribute        $stockAttribute,
+        private MaxOrderSizeAttribute $maxOrderSizeAttribute,
+        private Connection            $connection,
+    ) {}
 
     /**
      * @IsotopeHook("preCheckout")

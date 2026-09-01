@@ -10,12 +10,11 @@ use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Isotope\Model\ProductType;
 
-class ProductListListener
+readonly class ProductListListener
 {
     public function __construct(
         protected Utils $utils,
-    ) {
-    }
+    ) {}
 
     #[AsCallback(table: 'tl_iso_product', target: 'config.onload')]
     public function onLoadCallback(DataContainer $dc): void

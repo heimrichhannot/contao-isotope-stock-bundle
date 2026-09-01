@@ -16,15 +16,14 @@ use Isotope\ServiceAnnotation\IsotopeHook;
 /**
  * @IsotopeHook("preOrderStatusUpdate")
  */
-class PreOrderStatusUpdateListener
+readonly class PreOrderStatusUpdateListener
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly Utils $utils,
-        private readonly StockAttribute $stockAttribute,
-        private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
-    ) {
-    }
+        private Connection            $connection,
+        private Utils                 $utils,
+        private StockAttribute        $stockAttribute,
+        private MaxOrderSizeAttribute $maxOrderSizeAttribute,
+    ) {}
 
     /**
      * @return bool Cancel the order status transition if the stock increase/decrease fails

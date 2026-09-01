@@ -30,13 +30,12 @@ class StockReportModuleController extends AbstractFrontendModuleController
     public const TYPE = 'iso_stockreport';
 
     public function __construct(
-        protected ContaoFramework $framework,
-        protected Utils $utils,
-        protected Connection $connection,
+        protected ContaoFramework       $framework,
+        protected Utils                 $utils,
+        protected Connection            $connection,
         protected InitialStockAttribute $initialStockAttribute,
-        protected StockAttribute $stockAttribute,
-    ) {
-    }
+        protected StockAttribute        $stockAttribute,
+    ) {}
 
     protected function getResponse(Template $template, ModuleModel $model, Request $request): ?Response
     {
@@ -63,8 +62,9 @@ class StockReportModuleController extends AbstractFrontendModuleController
         $products = [];
 
         /** @var ProductType $type */
-        foreach ($types as $type) {
-            if (!in_array(StockAttribute::getName(), $type->getAttributes())) {
+        foreach ($types as $type)
+        {
+            if (!\in_array(StockAttribute::getName(), $type->getAttributes(), true)) {
                 continue;
             }
 
@@ -81,19 +81,20 @@ class StockReportModuleController extends AbstractFrontendModuleController
             $products[$category]['title'] = $type->name;
             $products[$category]['type'] = 'category';
 
-            while ($id = $result->fetchOne()) {
+            while ($id = $result->fetchOne())
+            {
                 /** @var Product $product */
                 $product = $this->utils->model()->findModelInstanceByIdOrAlias('tl_iso_product', $id);
                 if (!$product || !$this->stockAttribute->isUsed($product)) {
                     continue;
                 }
 
-                //                $productData = $product->row();
+                // $productData = $product->row();
 
-                if ($this->initialStockAttribute->isUsed($product) && $product->initialStock > 0) {
+                if ($this->initialStockAttribute->isUsed($product) && $product->initialStock > 0)
+                {
                     $product->stockPercent = floor($product->stock * 100 / $product->initialStock);
-
-                    //                    $productData['stockPercent'] = floor($product->stock * 100 / $product->initialStock);
+                    // $productData['stockPercent'] = floor($product->stock * 100 / $product->initialStock);
                 }
 
                 $products[$category]['products'][$product->id] = $product;

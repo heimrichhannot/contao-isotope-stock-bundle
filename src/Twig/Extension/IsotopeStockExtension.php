@@ -6,15 +6,22 @@ use HeimrichHannot\IsotopeStockBundle\ProductAttribute\InitialStockAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\MaxOrderSizeAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
 use Isotope\Interfaces\IsotopeProduct;
-use Twig\Extension\RuntimeExtensionInterface;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFilter;
 
-class IsoStockAttributeRuntime implements RuntimeExtensionInterface
+class IsotopeStockExtension implements AbstractExtension
 {
     public function __construct(
         private readonly StockAttribute $stockAttribute,
         private readonly InitialStockAttribute $initialStockAttribute,
         private readonly MaxOrderSizeAttribute $maxStockAttribute,
-    ) {
+    ) {}
+
+    public function getFilters(): array
+    {
+        return [
+            new TwigFilter('stock_attribute', $this->isIsoStockAttributeActive(...)),
+        ];
     }
 
     public function isIsoStockAttributeActive($product, string $attribute = 'stock'): bool

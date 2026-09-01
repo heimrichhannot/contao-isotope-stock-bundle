@@ -11,22 +11,24 @@ use Isotope\ServiceAnnotation\IsotopeHook;
 /**
  * @IsotopeHook("addProductToCollection")
  */
-class AddProductToCollectionListener
+readonly class AddProductToCollectionListener
 {
     public function __construct(
-        private readonly StockAttribute $stockAttribute,
-        private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
-    ) {
-    }
+        private StockAttribute        $stockAttribute,
+        private MaxOrderSizeAttribute $maxOrderSizeAttribute,
+    ) {}
 
-    public function __invoke(IsotopeProduct $product, $quantity, IsotopeProductCollection $collection, array $config): int
-    {
-        if (!is_int($quantity)) {
-            if (empty($quantity)) {
-                $quantity = 1;
-            } else {
-                $quantity = (int) $quantity;
-            }
+    public function __invoke(
+        IsotopeProduct           $product,
+        mixed                    $quantity,
+        IsotopeProductCollection $collection,
+        array                    $config,
+    ): int {
+        if (!\is_int($quantity))
+        {
+            $quantity = ($quantity === null || $quantity === '')
+                ? 1
+                : (int) $quantity;
         }
 
         $quantity = $this->validateStock($product, $quantity);
@@ -34,7 +36,7 @@ class AddProductToCollectionListener
         return $this->validateMaxOrder($product, $quantity);
     }
 
-    private function validateStock(IsotopeProduct $product, $quantity): int
+    private function validateStock(IsotopeProduct $product, int $quantity): int
     {
         if (!$this->stockAttribute->isActive($product)) {
             return $quantity;
@@ -47,7 +49,7 @@ class AddProductToCollectionListener
         return $quantity;
     }
 
-    private function validateMaxOrder(IsotopeProduct $product, $quantity): int
+    private function validateMaxOrder(IsotopeProduct $product, int $quantity): int
     {
         if (!$this->maxOrderSizeAttribute->isActive($product)) {
             return $quantity;

@@ -12,13 +12,12 @@ use Isotope\ServiceAnnotation\IsotopeHook;
 /**
  * @IsotopeHook("updateItemInCollection")
  */
-class UpdateItemInCollectionListener
+readonly class UpdateItemInCollectionListener
 {
     public function __construct(
-        private readonly StockAttribute $stockAttribute,
-        private readonly MaxOrderSizeAttribute $maxOrderSizeAttribute,
-    ) {
-    }
+        private StockAttribute        $stockAttribute,
+        private MaxOrderSizeAttribute $maxOrderSizeAttribute,
+    ) {}
 
     public function __invoke(ProductCollectionItem $item, array $set, ProductCollection $collection): array
     {

@@ -11,8 +11,7 @@ class MaxOrderSizeAttribute extends AbstractAttribute
 
     public function __construct(
         private readonly TranslatorInterface $translator,
-    ) {
-    }
+    ) {}
 
     public static function getName(): string
     {
@@ -21,16 +20,18 @@ class MaxOrderSizeAttribute extends AbstractAttribute
 
     public function validateQuantity(IsotopeProduct $product, int $quantity): bool
     {
-        if (null !== $product->maxOrderSize) {
-            if ($quantity > $product->maxOrderSize) {
-                $this->addErrorMessage($this->translator->trans('MSC.maxOrderSizeExceeded', [
-                    $product->getName(), $product->maxOrderSize,
-                ], 'contao_default'));
-
-                return false;
-            }
+        if ($product->maxOrderSize < 1) {
+            return true;
         }
 
-        return true;
+        if ($quantity <= $product->maxOrderSize) {
+            return true;
+        }
+
+        $this->addErrorMessage($this->translator->trans('MSC.maxOrderSizeExceeded', [
+            $product->getName(), $product->maxOrderSize,
+        ], 'contao_default'));
+
+        return false;
     }
 }

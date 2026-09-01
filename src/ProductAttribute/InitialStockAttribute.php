@@ -15,14 +15,14 @@ class InitialStockAttribute extends AbstractAttribute
 
     public function isUsed(IsotopeProduct $product): bool
     {
-        if (parent::isUsed($product)) {
-            if (0 === $product->{static::getName()}) {
-                return false;
-            }
-
-            return true;
+        if (!parent::isUsed($product)) {
+            return false;
         }
 
-        return false;
+        if ($product->{static::getName()} === 0) {
+            return false;
+        }
+
+        return true;
     }
 }
