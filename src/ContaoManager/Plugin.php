@@ -20,8 +20,12 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
         ];
     }
 
-    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig)
+    /**
+     * @param array<string, mixed> $managerConfig
+     * @throws \Exception
+     */
+    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig): void
     {
-        return $loader->load('@HeimrichHannotIsotopeStockBundle/config/services.yaml');
+        $loader->load('@HeimrichHannotIsotopeStockBundle/config/services.yaml');
     }
 }

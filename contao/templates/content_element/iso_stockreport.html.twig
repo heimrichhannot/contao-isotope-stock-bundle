@@ -1,0 +1,85 @@
+{% extends '@Contao/content_element/_isotope_base.html.twig' %}
+
+{% block content %}
+    {% for category in items|default([]) %}
+        <table class="stockreport">
+            <thead>
+                <tr>
+                    <th colspan="2">{{ category.title }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in category.products %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td>
+                            {% if product.stockPercent is not null %}
+                                {% set state = product.stockPercent < 1 ? ' stock-empty'
+                                    : product.stockPercent < 25 ? ' stock-warning'
+                                    : product.stockPercent < 75 ? ' stock-medium' : '' %}
+                                <div class="progress{{ state }}" style="width: {{ product.stockPercent }}%"></div>
+                                <div class="progress-text">
+                                    <strong>{{ product.stockPercent }}%</strong> ({{ product.stock }}/{{ product.initialStock }})
+                                </div>
+                            {% else %}
+                                {{ product.stock }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+{% endblock %}
+
+{% block style %}
+    {{ parent() }}
+
+    {% add 'isotope_stockreport_css' to head %}
+        <style>
+            table.stockreport {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 2em;
+            }
+            .stockreport td,
+            .stockreport th {
+                border: 1px solid #000;
+                padding: 5px;
+                min-width: 4em;
+                position: relative;
+            }
+            .stockreport thead th {
+                font-weight: bold;
+                background-color: #eee;
+                text-align: left;
+            }
+            .stockreport .progress {
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                width: 0;
+                height: calc(100% - 10px);
+                min-width: 5px;
+                max-width: calc(100% - 10px);
+                background-color: #5cb85c;
+                border-radius: 5px;
+                z-index: 0;
+            }
+            .stockreport .progress-text {
+                position: relative;
+                z-index: 1;
+                text-align: center;
+            }
+            .stockreport .stock-empty {
+                background-color: #f00;
+            }
+            .stockreport .stock-warning {
+                background-color: #f90;
+            }
+            .stockreport .stock-medium {
+                background-color: #5bc0de;
+            }
+        </style>
+    {% endadd %}
+{% endblock %}

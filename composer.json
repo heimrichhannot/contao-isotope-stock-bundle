@@ -4,28 +4,49 @@
   "description": "Add stock management to Isotope eCommerce Contao extension.",
   "license": "GPL-3.0-or-later",
   "require": {
-    "php": "^8.2",
-    "contao/core-bundle": "^4.13",
-    "doctrine/dbal": "^2.12 || ^3.0",
-    "heimrichhannot/contao-utils-bundle": "^2.232.0 || ^3.0",
-    "isotope/isotope-core": "^2.8",
-    "symfony/http-kernel": "^5.4 || ^6.0",
-    "symfony/translation-contracts": "^1.0 || ^2.0 || ^3.0"
+    "php": "^8.3",
+    "contao/core-bundle": "^5.7.4",
+    "doctrine/dbal": "^4.3",
+    "isotope/isotope-core": "^3.0@dev",
+    "symfony/config": "^7.4",
+    "symfony/dependency-injection": "^7.4",
+    "symfony/event-dispatcher": "^7.4",
+    "symfony/http-foundation": "^7.4",
+    "symfony/http-kernel": "^7.4",
+    "symfony/translation": "^7.4",
+    "symfony/translation-contracts": "^3.0",
+    "symfony/workflow": "^7.4",
+    "twig/twig": "^3.12"
   },
   "autoload": {
     "psr-4": {
       "HeimrichHannot\\IsotopeStockBundle\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "HeimrichHannot\\IsotopeStockBundle\\Tests\\": "tests/"
+    }
+  },
   "extra": {
     "contao-manager-plugin": "HeimrichHannot\\IsotopeStockBundle\\ContaoManager\\Plugin"
   },
   "require-dev": {
-    "rector/rector": "^1.2",
     "contao/contao-rector": "dev-main",
     "contao/manager-plugin": "^2.13",
-    "symplify/easy-coding-standard": "^12.5",
-    "phpstan/phpstan": "^1.12",
-    "phpstan/phpstan-symfony": "^1.4"
-  }
+    "phpstan/phpstan": "^2.2",
+    "phpstan/phpstan-symfony": "^2.0",
+    "phpunit/phpunit": "^11.5",
+    "rector/rector": "^2.0",
+    "symplify/easy-coding-standard": "^12.5"
+  },
+  "config": {
+    "allow-plugins": {
+      "contao-components/installer": true,
+      "contao/manager-plugin": true,
+      "php-http/discovery": true
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

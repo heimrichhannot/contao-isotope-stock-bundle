@@ -1,47 +1,55 @@
 <?php
 
+declare(strict_types=1);
+
 namespace HeimrichHannot\IsotopeStockBundle\ProductAttribute;
 
-use Isotope\Interfaces\IsotopeProduct;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use Isotope\CoreBundle\Product\CoreProduct;
+use Symfony\Component\Translation\TranslatableMessage;
+use Symfony\Contracts\Translation\TranslatableInterface;
 
-class StockAttribute extends AbstractAttribute
+class StockAttribute extends AbstractStockAttribute
 {
     public const NAME = 'stock';
-
-    public function __construct(
-        private readonly TranslatorInterface $translator,
-    ) {}
 
     public static function getName(): string
     {
         return static::NAME;
     }
 
-    public function validateQuantity(IsotopeProduct $product, int $quantity): bool
+    public function getMaxQuantity(CoreProduct $product): ?int
     {
-        if ('' === $product->stock || null === $product->stock) {
-            return true;
+        if (!$this->hasStock($product)) {
+            return null;
+        }
+
+        return \max(0, (int) $product->stock);
+    }
+
+    public function validateQuantity(CoreProduct $product, int $quantity): ?TranslatableInterface
+    {
+        if (!$this->hasStock($product)) {
+            return null;
         }
 
         $stock = (int) $product->stock;
 
-        if ($stock < 1)
-        {
-            $this->addErrorMessage($this->translator->trans('MSC.stockEmpty', [$product->getName()], 'contao_default'));
-
-            return false;
+        if ($stock < 1) {
+            return new TranslatableMessage('MSC.stockEmpty', [$product->getName()], 'contao_default');
         }
 
-        if ($quantity > $stock)
-        {
-            $this->addErrorMessage($this->translator->trans('MSC.stockExceeded', [
-                $product->getName(), $stock,
-            ], 'contao_default'));
-
-            return false;
+        if ($quantity > $stock) {
+            return new TranslatableMessage('MSC.stockExceeded', [$product->getName(), $stock], 'contao_default');
         }
 
-        return true;
+        return null;
+    }
+
+    /**
+     * An empty stock field means "not managed", which is not the same as a stock of zero.
+     */
+    private function hasStock(CoreProduct $product): bool
+    {
+        return '' !== $product->stock && null !== $product->stock;
     }
 }

@@ -1,37 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace HeimrichHannot\IsotopeStockBundle\ProductAttribute;
 
-use Isotope\Interfaces\IsotopeProduct;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use Isotope\CoreBundle\Product\CoreProduct;
+use Symfony\Component\Translation\TranslatableMessage;
+use Symfony\Contracts\Translation\TranslatableInterface;
 
-class MaxOrderSizeAttribute extends AbstractAttribute
+class MaxOrderSizeAttribute extends AbstractStockAttribute
 {
     public const NAME = 'maxOrderSize';
-
-    public function __construct(
-        private readonly TranslatorInterface $translator,
-    ) {}
 
     public static function getName(): string
     {
         return static::NAME;
     }
 
-    public function validateQuantity(IsotopeProduct $product, int $quantity): bool
+    public function getMaxQuantity(CoreProduct $product): ?int
     {
-        if ($product->maxOrderSize < 1) {
-            return true;
+        $maxOrderSize = (int) $product->maxOrderSize;
+
+        return $maxOrderSize < 1 ? null : $maxOrderSize;
+    }
+
+    public function validateQuantity(CoreProduct $product, int $quantity): ?TranslatableInterface
+    {
+        $maxOrderSize = $this->getMaxQuantity($product);
+
+        if (null === $maxOrderSize || $quantity <= $maxOrderSize) {
+            return null;
         }
 
-        if ($quantity <= $product->maxOrderSize) {
-            return true;
-        }
-
-        $this->addErrorMessage($this->translator->trans('MSC.maxOrderSizeExceeded', [
-            $product->getName(), $product->maxOrderSize,
-        ], 'contao_default'));
-
-        return false;
+        return new TranslatableMessage(
+            'MSC.maxOrderSizeExceeded',
+            [$product->getName(), $maxOrderSize],
+            'contao_default',
+        );
     }
 }

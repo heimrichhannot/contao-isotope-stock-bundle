@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace HeimrichHannot\IsotopeStockBundle\ProductAttribute;
 
-use Isotope\Interfaces\IsotopeProduct;
+use Isotope\CoreBundle\Product\CoreProduct;
 
-class InitialStockAttribute extends AbstractAttribute
+class InitialStockAttribute extends AbstractStockAttribute
 {
     public const NAME = 'initialStock';
 
@@ -13,16 +15,15 @@ class InitialStockAttribute extends AbstractAttribute
         return static::NAME;
     }
 
-    public function isUsed(IsotopeProduct $product): bool
+    /**
+     * An initial stock of zero carries no information — the percentage display cannot use it.
+     */
+    public function isUsed(CoreProduct $product): bool
     {
         if (!parent::isUsed($product)) {
             return false;
         }
 
-        if ($product->{static::getName()} === 0) {
-            return false;
-        }
-
-        return true;
+        return 0 !== (int) $product->{static::getName()};
     }
 }

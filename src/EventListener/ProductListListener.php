@@ -1,70 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace HeimrichHannot\IsotopeStockBundle\EventListener;
 
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\DataContainer;
-use Contao\Model\Collection;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\InitialStockAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
-use HeimrichHannot\UtilsBundle\Util\Utils;
-use Isotope\Model\ProductType;
+use Isotope\CoreBundle\Model\ProductTypeModel;
 
-readonly class ProductListListener
+/**
+ * Shows stock as a sortable column in the backend product list, if any product type uses it.
+ */
+class ProductListListener
 {
-    public function __construct(
-        protected Utils $utils,
-    ) {}
-
     #[AsCallback(table: 'tl_iso_product', target: 'config.onload')]
     public function onLoadCallback(DataContainer $dc): void
     {
-        $where = $this->utils->database()->createWhereForSerializedBlob('attributes', [StockAttribute::getName(), InitialStockAttribute::getName()]);
+        $enabled = $this->getEnabledAttributes();
 
-        /** @var Collection|ProductType[] $types */
-        $types = ProductType::findBy([$where->createOrWhere()], $where->values);
-        if (!$types) {
-            return;
-        }
-
-        $stockActive = false;
-        $initialStockActive = false;
-        foreach ($types as $type) {
-            if (in_array(StockAttribute::getName(), $type->getAttributes())) {
-                $stockActive = true;
-                if ($initialStockActive) {
-                    break;
-                }
+        foreach ([StockAttribute::getName(), InitialStockAttribute::getName()] as $attribute) {
+            if (!\in_array($attribute, $enabled, true)) {
+                continue;
             }
-            if (in_array(InitialStockAttribute::getName(), $type->getAttributes())) {
-                $initialStockActive = true;
-                if ($stockActive) {
-                    break;
-                }
-            }
-        }
 
-        if ($stockActive) {
-            $GLOBALS['TL_DCA']['tl_iso_product']['list']['label']['fields'][] = 'stock';
-            $GLOBALS['TL_DCA']['tl_iso_product']['fields']['stock']['sorting'] = true;
-        }
-
-        if ($initialStockActive) {
-            $GLOBALS['TL_DCA']['tl_iso_product']['list']['label']['fields'][] = 'initialStock';
-            $GLOBALS['TL_DCA']['tl_iso_product']['fields']['initialStock']['sorting'] = true;
+            $GLOBALS['TL_DCA']['tl_iso_product']['list']['label']['fields'][] = $attribute;
+            $GLOBALS['TL_DCA']['tl_iso_product']['fields'][$attribute]['sorting'] = true;
         }
     }
 
-    //    #[AsCallback(table: 'tl_iso_product', target: 'list.label.label')]
-    //    public function onListLabelLabelCallback(array $row, string $label, DataContainer $dc, array $labels): array
-    //    {
-    //        $isotopeCallback = System::importStatic(Label::class);
-    //        $labels = $isotopeCallback->generate($row, $label, $dc, $labels);
-    //
-    //        if (($key = array_search('stock', $GLOBALS['TL_DCA']['tl_iso_product']['list']['label']['fields'])) === false) {
-    //            return $labels;
-    //        }
-    //
-    //        return $labels;
-    //    }
+    /**
+     * The attribute names enabled by at least one product type.
+     *
+     * Isotope 3 stores tl_iso_producttype.attributes as a rowWizard blob of name/enabled pairs, so a
+     * LIKE over the serialized value would match disabled attributes too. There are only ever a
+     * handful of product types, so asking the model is both correct and cheap.
+     *
+     * @return list<string>
+     */
+    private function getEnabledAttributes(): array
+    {
+        $enabled = [];
+
+        foreach (ProductTypeModel::findAll() ?? [] as $type) {
+            $enabled[] = $type->getAttributes();
+        }
+
+        return [] === $enabled ? [] : array_values(array_unique(array_merge(...$enabled)));
+    }
 }

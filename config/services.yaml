@@ -4,4 +4,25 @@ services:
     autowire: true
 
   HeimrichHannot\IsotopeStockBundle\:
-    resource: '../src/{Controller,EventListener,Migration,ProductAttribute,Twig}/*'
+    resource: '../src/{Controller,EventListener,Migration,ProductAttribute,ProductCollection,Stock,Twig}/*'
+
+  # The migrations are tagged by hand on purpose. Contao autoconfigures every MigrationInterface with
+  # a priority-less "contao.migration" tag, and TaggedMigrationsPass only ever reads the first tag of
+  # a service — so an #[AutoconfigureTag] on the class is silently ignored and the migration ends up
+  # at priority 0. At priority 0 Contao breaks ties by class name, which would put HeimrichHannot
+  # before Isotope and run these before Isotope's own migrations.
+  HeimrichHannot\IsotopeStockBundle\Migration\MigrateFieldsSqlMigration:
+    autoconfigure: false
+    tags:
+      - { name: contao.migration, priority: -200 }
+
+  HeimrichHannot\IsotopeStockBundle\Migration\IncreaseStockMigration:
+    autoconfigure: false
+    tags:
+      - { name: contao.migration, priority: -200 }
+
+  # Isotope's AbstractModuleToElementMigration runs at -100; this one has to come after it
+  HeimrichHannot\IsotopeStockBundle\Migration\StockReportModuleToElementMigration:
+    autoconfigure: false
+    tags:
+      - { name: contao.migration, priority: -200 }

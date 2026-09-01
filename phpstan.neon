@@ -1,13 +1,17 @@
 parameters:
-  level: 3
+  level: 6
   paths:
     - src
     - contao
+    - tests
   universalObjectCratesClasses:
-    - Isotope\Interfaces\IsotopeProduct
-    - Isotope\Model\Config
-    - Isotope\Model\OrderStatus
-#    - Contao\Model
+    # Isotope 3 products are plain data objects with magic property access
+    - Isotope\CoreBundle\Product\Product
+    - Contao\Model
     - Contao\Template
+  excludePaths:
+    analyse:
+      # Contao DCA files are arrays in a global, not analysable code
+      - contao/dca/*
 includes:
   - vendor/phpstan/phpstan-symfony/extension.neon
