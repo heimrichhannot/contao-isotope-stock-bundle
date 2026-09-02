@@ -43,15 +43,19 @@ class StockReportController extends AbstractContentElementController
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
     {
-        $template->items = $this->getCategories();
+        $template->items = $this->getReport();
 
         return $template->getResponse();
     }
 
     /**
+     * Deliberately not called getCategories(): Isotope's AbstractContentElementController declares a
+     * protected getCategories() that resolves the pages a product list reads from, and a private
+     * method of the same name is a fatal error, not an override.
+     *
      * @return list<array{title: string, products: list<array{name: string, stock: int, initialStock: int|null, stockPercent: int|null}>}>
      */
-    private function getCategories(): array
+    private function getReport(): array
     {
         $categories = [];
 

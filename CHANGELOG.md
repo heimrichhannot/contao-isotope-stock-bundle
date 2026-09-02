@@ -30,10 +30,18 @@ Breaking: this line supports **Contao 5.7 and Isotope 3 only**. Stay on the `iso
 - Changed: `stock` and `initialStock` are no longer mandatory in the backend. An empty value is what
   expresses "stock is not managed for this product", which a mandatory field cannot hold.
 - Changed: error messages now go through `LineItem::addError()` and the Isotope flash bag instead of
-  `$_SESSION['ISO_ERROR']`.
+  `$_SESSION['ISO_ERROR']`. A capped quantity also raises a flash message, because adding to the cart
+  redirects and the line item error would never be rendered.
+- Changed: a product whose stock has run out keeps its line item in the cart, carrying the
+  "not available" error, instead of being removed silently. Isotope 3 renders line item errors but no
+  collection level errors, and the error is what makes `hasErrors()` block the checkout.
 - Changed: dropped the `heimrichhannot/contao-utils-bundle` dependency. The serialized-blob query it
   provided cannot express Isotope 3's new `tl_iso_producttype.attributes` format, which stores
   name/enabled pairs; the product types are read through `ProductTypeModel` instead.
+- Fixed: added the `contao/templates/.twig-root` marker. Without it Contao registers every template
+  subdirectory as its own namespace root, so the content element template was known as
+  `iso_stockreport` instead of `content_element/iso_stockreport` and the element failed with
+  "Could neither find template ... nor the legacy fallback template".
 - Fixed: `IsotopeStockExtension` declared `implements Twig\Extension\AbstractExtension`, which is a
   class, not an interface — a fatal error as soon as the service was instantiated.
 - Added: PHPUnit test suite covering the attribute classes and the stock arithmetic.
