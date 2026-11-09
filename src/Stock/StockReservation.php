@@ -119,8 +119,9 @@ readonly class StockReservation
      *
      * If the order already holds exactly the reservation its items need, it is kept as is. Otherwise an existing
      * reservation is released first and the stock is reserved anew. Items with unmanaged stock, a deleted product or
-     * a quantity <= 0 are skipped. If an item can't be reserved, an error message is reported, everything already
-     * decreased is booked back and false is returned.
+     * a quantity <= 0 are skipped (the max order size is checked for all items first, also when the reservation is
+     * kept). If an item can't be reserved, an error message is reported, everything already decreased is booked back
+     * and false is returned.
      */
     public function reserveOrder(Order $order): bool
     {
@@ -131,6 +132,20 @@ readonly class StockReservation
             $this->addReservationFailedError();
 
             return false;
+        }
+
+        // max order size applies to all items, also those without managed stock (checked before touching any stock)
+        foreach ($order->getItems() as $item) {
+            $quantity = (int) $item->quantity;
+            $product = $item->getProduct();
+
+            if ($quantity <= 0 || null === $product) {
+                continue;
+            }
+
+            if ($this->maxOrderSizeAttribute->isActive($product) && !$this->maxOrderSizeAttribute->validateQuantity($product, $quantity)) {
+                return false;
+            }
         }
 
         $currentMap = $this->fetchReservationMap($orderId);
@@ -411,8 +426,9 @@ readonly class StockReservation
      * Reads the current stock of the given row into $product->stock: as string (StockAttribute::validateQuantity()
      * expects the model's string representation), NULL if the stock is unmanaged or the row is gone (so
      * StockAttribute::isUsed() returns false).
+     * This marks the product model as modified: don't save() it afterwards (it would write the read value back).
      */
-    private function refreshStock(IsotopeProduct $product, int $targetId): ?string
+    private function refreshStock(IsotopeProduct $product, int $targetId): void
     {
         $stock = $this->connection->fetchOne(
             'SELECT stock FROM tl_iso_product WHERE id = :id',
@@ -426,8 +442,6 @@ readonly class StockReservation
 
         $stock = false === $stock || null === $stock ? null : (string) $stock;
         $product->stock = $stock;
-
-        return $stock;
     }
 
     /**
