@@ -131,8 +131,9 @@ readonly class StockReservation
      * If the order already holds exactly the reservation its items need, it is kept as is. Otherwise an existing
      * reservation is released first and the stock is reserved anew. Items with unmanaged stock, a deleted product or
      * a quantity <= 0 are skipped (the max order size is checked for all items first, also when the reservation is
-     * kept). If an item can't be reserved, an error message is reported, everything already decreased is booked back
-     * and false is returned.
+     * kept). If nothing needs to be reserved, an empty map is stored, so the order is not mistaken for one from before
+     * the reservation (whose stock is computed from its items). If an item can't be reserved, an error message is
+     * reported, everything already decreased is booked back and false is returned.
      */
     public function reserveOrder(Order $order): bool
     {
@@ -211,10 +212,7 @@ readonly class StockReservation
             $reserved[$targetId] = ($reserved[$targetId] ?? 0) + $quantity;
         }
 
-        if (!$reserved) {
-            return true;
-        }
-
+        // also store an empty map: a NULL map would make cancel/delete compute the stock from the items
         ksort($reserved);
         $map = serialize($reserved);
 
