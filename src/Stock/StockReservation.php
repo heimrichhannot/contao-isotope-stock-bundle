@@ -4,12 +4,14 @@ namespace HeimrichHannot\IsotopeStockBundle\Stock;
 
 use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\Message;
+use Contao\StringUtil;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\MaxOrderSizeAttribute;
 use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Isotope\Interfaces\IsotopeProduct;
+use Isotope\Model\Attribute;
 use Isotope\Model\Product;
 use Isotope\Model\ProductCollection\Order;
 use Isotope\Model\ProductType;
@@ -42,6 +44,9 @@ readonly class StockReservation
     /**
      * Returns the id of the product row that holds the stock: the parent product if the variant inherits the stock
      * attribute, otherwise the product itself.
+     *
+     * Like Isotope's Standard::setRow(), a variant inherits the stock if it is no variant attribute of the product type
+     * or if it is listed in the variant's inherit field (or is an always inherited attribute).
      */
     public function getTargetId(IsotopeProduct $product): int
     {
@@ -50,6 +55,12 @@ readonly class StockReservation
             $variantAttributes = $type instanceof ProductType ? (array) $type->getVariantAttributes() : [];
 
             if (!\in_array(StockAttribute::NAME, $variantAttributes, true)) {
+                return (int) $product->getProductId();
+            }
+
+            $inherited = array_merge(StringUtil::deserialize($product->inherit, true), Attribute::getInheritFields());
+
+            if (\in_array(StockAttribute::NAME, $inherited, true)) {
                 return (int) $product->getProductId();
             }
         }
