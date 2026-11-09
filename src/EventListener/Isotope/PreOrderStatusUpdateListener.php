@@ -2,15 +2,10 @@
 
 namespace HeimrichHannot\IsotopeStockBundle\EventListener\Isotope;
 
-use Contao\Model;
-use Doctrine\DBAL\Connection;
-use HeimrichHannot\IsotopeStockBundle\ProductAttribute\MaxOrderSizeAttribute;
-use HeimrichHannot\IsotopeStockBundle\ProductAttribute\StockAttribute;
+use HeimrichHannot\IsotopeStockBundle\Stock\StockReservation;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Isotope\Model\OrderStatus;
-use Isotope\Model\Product;
 use Isotope\Model\ProductCollection\Order;
-use Isotope\Model\ProductCollectionItem;
 use Isotope\ServiceAnnotation\IsotopeHook;
 
 /**
@@ -19,14 +14,18 @@ use Isotope\ServiceAnnotation\IsotopeHook;
 readonly class PreOrderStatusUpdateListener
 {
     public function __construct(
-        private Connection            $connection,
-        private Utils                 $utils,
-        private StockAttribute        $stockAttribute,
-        private MaxOrderSizeAttribute $maxOrderSizeAttribute,
-    ) {}
+        private Utils $utils,
+        private StockReservation $stockReservation,
+    ) {
+    }
 
     /**
-     * @return bool Cancel the order status transition if the stock increase/decrease fails
+     * Books the order's stock back when it changes into a stock-increasing status (e.g. new -> cancelled) and takes
+     * it again (atomically, conditionally) when it changes out of one (e.g. cancelled -> new).
+     *
+     * Known limit: if a later preOrderStatusUpdate hook cancels the transition, the stock change made here stays.
+     *
+     * @return bool true to cancel the order status transition (not enough stock to leave the stock-increasing status)
      */
     public function __invoke(Order $order, OrderStatus $newsStatus, array $updates): bool
     {
@@ -44,93 +43,14 @@ readonly class PreOrderStatusUpdateListener
             return false;
         }
 
-        // Determine the appropriate callback based on stock change
-        //   e.g. new -> cancelled: increase the stock based on the ordered item's quantity
-        //   e.g. cancelled -> new: decrease the stock
-        $callback = !$oldStatus->stock_increaseStock && $newsStatus->stock_increaseStock
-            ? 'increaseStock'
-            : 'decreaseStock';
+        if ($newsStatus->stock_increaseStock) {
+            // e.g. new -> cancelled: book the order's stock back
+            $this->stockReservation->restockOrder($order);
 
-        foreach ($order->getItems() as $item) {
-            if (!$this->$callback($item)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return bool False if the stock increase failed
-     *
-     * @noinspection PhpUnused
-     */
-    protected function increaseStock(ProductCollectionItem $item): bool
-    {
-        if (!$product = $item->getProduct()) {
-            return true;
-        }
-
-        if ($this->stockAttribute->isActive($product)) {
-            $newStock = (int) $product->stock + (int) $item->quantity;
-
-            if ($product instanceof Model) {
-                $table = $product::getTable();
-            } else {
-                $table = Product::getTable();
-            }
-
-            $this->connection
-                ->prepare("UPDATE $table SET stock = ? WHERE id = ?")
-                ->executeStatement([$newStock, $product->id]);
-
-            $product->stock = $newStock;
-        }
-
-        if ($this->maxOrderSizeAttribute->isActive($product)
-            && !$this->maxOrderSizeAttribute->validateQuantity($product, $item->quantity)) {
-            // validation needed after stock increase
             return false;
         }
 
-        return true;
-    }
-
-    /**
-     * @return bool False if the stock decrease failed
-     *
-     * @noinspection PhpUnused
-     */
-    protected function decreaseStock(ProductCollectionItem $item): bool
-    {
-        if (!$product = $item->getProduct()) {
-            return true;
-        }
-
-        if (!$this->stockAttribute->validateQuantity($product, $item->quantity)) {
-            // validation needed before stock decrease
-            // if the validation breaks, cancel the order status transition
-            return false;
-        }
-
-        $newStock = (int) $product->stock - (int) $item->quantity;
-
-        if ($newStock < 0) {
-            return false;
-        }
-
-        if ($product instanceof Model) {
-            $table = $product::getTable();
-        } else {
-            $table = Product::getTable();
-        }
-
-        $this->connection
-            ->prepare("UPDATE $table SET stock = ? WHERE id = ?")
-            ->executeStatement([$newStock, $product->id]);
-
-        $product->stock = $newStock;
-
-        return true;
+        // e.g. cancelled -> new: take the stock again, cancel the transition if there is not enough
+        return !$this->stockReservation->unrestockOrder($order);
     }
 }
