@@ -40,7 +40,7 @@ just activate these attributes in your product type configuration.
 - the reserved quantities are stored on the order in `tl_iso_product_collection.stock_reservation` (serialized map product id => quantity, e.g. `a:1:{i:42;i:3;}` = product 42, quantity 3; `a:0:{}` if nothing needed to be reserved); after updating run `contao:migrate` (or update the database)
 - the reservation is released when an incomplete order is deleted (e.g. by Isotope's cron)
 - two concurrent submits of the same checkout with a changed cart are serialised by Symfony's session locking in practice
-- completed orders keep their reservation (it is their booking); in the backend the stock is booked back when an order changes into a stock-increasing status (e.g. cancelled) and taken again when it changes out of one
+- completed orders keep their reservation (it is their booking); in the backend the stock is booked back when an order changes into a stock-increasing status (e.g. cancelled) and taken again when it changes out of one; deleting a completed order never changes the stock (cancel it first to get its stock back)
 - backend product form: a stock change is applied as delta against the value displayed in the form, so stock changes made meanwhile (orders, other editors) are kept; a change that would make the stock negative is rejected with a message at the field
 
 #### Known limitations
