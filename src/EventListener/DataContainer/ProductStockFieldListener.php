@@ -15,7 +15,9 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
  *
  * The stock value shown in the form is remembered on load; on save only the difference the editor typed is applied
  * to the current database value (tl_iso_product.stock, int unsigned NULL; NULL = unmanaged) instead of writing the
- * (possibly stale) absolute value back. A change that would make the stock negative is rejected.
+ * (possibly stale) absolute value back. A change that would make the stock negative is rejected. After a change is
+ * applied, the typed value is remembered instead, so resubmitting the form (e.g. after another field failed
+ * validation) doesn't apply the difference again.
  */
 readonly class ProductStockFieldListener
 {
@@ -118,6 +120,10 @@ readonly class ProductStockFieldListener
 
             throw new \RuntimeException(\sprintf('Der Bestand wurde zwischenzeitlich (z. B. durch Bestellungen) auf %d geändert. Ihre Eingabe wird als Änderung gegenüber dem beim Öffnen angezeigten Bestand %d verrechnet und würde den Bestand negativ machen. Bitte geben Sie mindestens %d ein.', $current, (int) $loaded, (int) $loaded - $current));
         }
+
+        // the typed value is now applied: if another field fails validation, a resubmit of the same value is delta 0
+        // (the next display of the form overwrites the entry, other actions remove it)
+        $session->set($key, $value);
 
         return null === $current ? $value : (string) $current;
     }
